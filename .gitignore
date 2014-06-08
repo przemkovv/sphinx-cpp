@@ -1,3 +1,4 @@
 build/
 tags
 sphinx
+3rd_party/

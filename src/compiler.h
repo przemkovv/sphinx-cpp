@@ -9,23 +9,23 @@
 
 
 namespace compiler {
-    class Compiler {
-        protected:
-            std::string executable_path;
-            Compiler(std::string executable_path) :
-                executable_path(executable_path) { }
-        public: 
-            std::string getVersion();
-            void compile();
-    };
+class Compiler {
+    protected:
+        std::string executable_path;
+        Compiler(std::string executable_path) :
+            executable_path(executable_path) { }
+    public:
+        std::string getVersion();
+        void compile();
+};
 
-    class GXXCompiler : public Compiler{
-        public:
-            GXXCompiler(std::string executable_path); 
-            std::string getVersion();
-    };
+class GXXCompiler : public Compiler {
+    public:
+        GXXCompiler(std::string executable_path);
+        std::string getVersion();
+};
 
-    class ClangCompiler {
+class ClangCompiler {
 
-    };
+};
 }

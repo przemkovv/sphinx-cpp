@@ -9,41 +9,43 @@
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/ServerSocket.h>
 
+#include <Poco/SharedPtr.h>
+
 #include "MyRequestHandlerFactory.h"
+#include "RootHandler.h"
+#include "DataHandler.h"
 
-namespace Sphinx{ 
+using Poco::AutoPtr;
 
-
-    Server::Server() : logger(Poco::Logger::get(name())), terminate(false) {
-
-        logger.information("Start");
-    }
-
-    Server::~Server(){ 
-    }
-
-    void Server::listen() {
-        const uint16_t port = 9999;
-        auto params = new Poco::Net::HTTPServerParams();
-        params->setMaxQueued(100);
-        params->setMaxThreads(16);
-
-        Poco::Net::ServerSocket server_socket(port);
-        Poco::Net::HTTPServer http_server(new MyRequestHandlerFactory(terminate), server_socket, params);
+namespace Sphinx {
 
 
-        http_server.start();
-
-        std::chrono::milliseconds duration(1'000);
-        std::this_thread::sleep_for(duration);
-
-        //waitForTerminationRequest();
-        while( !terminate)  {
-            logger.information("Going sleep...");
-            std::this_thread::sleep_for(duration);
-        }
-
-
-        http_server.stop();
-    }
+Server::Server() : logger(Poco::Logger::get(name())), terminate(false)
+{
+    logger.information("Start");
 }
+
+Server::~Server()
+{
+    http_server->stop();
+}
+
+void Server::listen()
+{
+    const uint16_t port = 9999;
+    auto params = new Poco::Net::HTTPServerParams();
+    params->setMaxQueued(100);
+    params->setMaxThreads(16);
+    Poco::SharedPtr<MyRequestHandlerFactory> request_handler_factory(new MyRequestHandlerFactory(terminate));
+    request_handler_factory->addRequestHandler("/", []() {
+        return new RootHandler();
+    });
+    request_handler_factory->addRequestHandler("/data", []() {
+        return new DataHandler();
+    });
+    Poco::Net::ServerSocket server_socket(port);
+    http_server = std::make_unique<Poco::Net::HTTPServer>(request_handler_factory, server_socket, params);
+    http_server->start();
+}
+}
+
