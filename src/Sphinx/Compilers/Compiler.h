@@ -2,13 +2,11 @@
 #pragma once
 
 #include <string>
-#include <Poco/Process.h>
-#include <Poco/StreamCopier.h>
-#include <Poco/PipeStream.h>
+#include "Sphinx/File.h"
 
+namespace Sphinx {
+namespace Compilers {
 
-
-namespace compiler {
 class Compiler {
     protected:
         std::string executable_path;
@@ -17,15 +15,9 @@ class Compiler {
     public:
         std::string getVersion();
         void compile();
+        virtual bool compile(File file) = 0;
 };
 
-class GXXCompiler : public Compiler {
-    public:
-        GXXCompiler(std::string executable_path);
-        std::string getVersion();
-};
 
-class ClangCompiler {
-
-};
+}
 }

@@ -5,20 +5,18 @@
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
 
-
-
-class RootHandler : public Poco::Net::HTTPRequestHandler {
+namespace Sphinx {
+class DataHandler : public Poco::Net::HTTPRequestHandler {
     public:
         void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
         {
-            auto& logger = Poco::Logger::get("RootHandler");
-            logger.information("Request from " + request.clientAddress().toString());
             response.setChunkedTransferEncoding(true);
             response.setContentType("text/html");
             auto& ostr = response.send();
-            ostr << "Hello World";
+            ostr << "Ahoj świecie";
         }
 
     private:
         /* data */
 };
+}

@@ -1,12 +1,15 @@
 
 #pragma once
 
-#include <atomic>
 #include <Poco/Logger.h>
 #include <Poco/Net/HTTPServer.h>
 #include <memory>
 
+#include "RequestHandlerFactory.h"
+
 namespace Sphinx {
+namespace Net {
+
 class Server {
     public:
         Server();
@@ -18,11 +21,14 @@ class Server {
 
         void listen();
 
+    protected:
+        void addRequestHandlers(RequestHandlerFactory *request_handler_factory);
+
     private:
         /* data */
         Poco::Logger& logger;
-        std::atomic<bool> terminate;
         std::unique_ptr<Poco::Net::HTTPServer> http_server;
 };
 
+}
 }

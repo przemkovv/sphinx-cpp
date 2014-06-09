@@ -12,8 +12,11 @@
 #include <Poco/PatternFormatter.h>
 #include <Poco/AsyncChannel.h>
 
-#include "Server.h"
-#include "compiler.h"
+#include "Sphinx/Net/Server.h"
+#include "Sphinx/Compilers/GXXCompiler.h"
+
+#include "Sphinx/File.h"
+#include "Sphinx/Sandbox.h"
 
 using Poco::AutoPtr;
 using Poco::Util::Option;
@@ -76,8 +79,8 @@ void Application::configureLogger()
 
 void Application::runServerMode()
 {
-    logger().information("I'm server");
-    Server server;
+    logger().information("I'm a server");
+    Net::Server server;
     server.listen();
 
     while (!terminate.tryWait(1000)) {
@@ -87,7 +90,26 @@ void Application::runServerMode()
 
 void Application::runClientMode()
 {
-    logger().information("I'm client");
+    logger().information("I'm a client");
+    Compilers::GXXCompiler compiler("/usr/bin/g++");
+    logger().information(compiler.getVersion());
+    File file {"main.cpp",  R"code(
+#include <iostream>
+int main() {
+    std::cout << "Hello World" << std::endl;
+    return 0;
+} )code" 
+              };
+
+    if (compiler.compile(file)) {
+        logger().information("Compilation was completed");
+        logger().information("Compiling file: " + file.name);
+        // 1. prepare sandbox
+        Sandbox sandbox;
+        sandbox.addFile(file);
+        // 2. compile
+    } else {
+    }
 }
 
 int Application::main(const std::vector<std::string>& args)
@@ -100,9 +122,6 @@ int Application::main(const std::vector<std::string>& args)
         } else if (config().has("application.client-mode")) {
             runClientMode();
         }
-
-        compiler::GXXCompiler compiler("/usr/bin/g++");
-        logger().information(compiler.getVersion());
     }
 
     return EXIT_OK;
