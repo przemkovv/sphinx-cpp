@@ -29,12 +29,12 @@
 EXE_NAME := sphinx
 
 COMPILER := g++
-COMPILER_FLAGS := -std=gnu++11
-INCLUDE_DIRS :=
+COMPILER_FLAGS := -Wall -std=c++1y  -g
+INCLUDE_DIRS := src
 
 LINKER_FLAGS :=
 LIBRARY_DIRS :=
-LIBRARIES :=
+LIBRARIES := PocoUtil PocoFoundation PocoNet
 
 SRC_DIR := src
 
@@ -57,8 +57,10 @@ else
 		OS := MacOSX
     endif
 endif
-
-SRC_DIRS := $(sort $(SRC_DIR)/ $(dir $(wildcard $(SRC_DIR)/*/))) # only one level of subdirs
+# Make does not offer a recursive wildcard function, so here's one:
+rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+ 
+SRC_DIRS := $(sort $(SRC_DIR)/ $(dir $(call rwildcard,$(SRC_DIR)/))) # only one level of subdirs
 
 SRCS := $(foreach sdir,$(SRC_DIRS),$(wildcard $(sdir)*.cpp))
 DEPS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/$(DEP_DIR)/%,$(SRCS:.cpp=.d))
