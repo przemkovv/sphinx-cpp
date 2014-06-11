@@ -13,7 +13,7 @@
 #include <Poco/AsyncChannel.h>
 
 #include "Sphinx/Net/Server.h"
-#include "Sphinx/Compilers/GXXCompiler.h"
+#include "Sphinx/Compilers/MakeCompiler.h"
 
 #include "Sphinx/File.h"
 #include "Sphinx/Sandbox.h"
@@ -91,25 +91,22 @@ void Application::runServerMode()
 void Application::runClientMode()
 {
     logger().information("I'm a client");
-    Compilers::GXXCompiler compiler("/usr/bin/g++");
+    Compilers::MakeCompiler compiler;
     logger().information(compiler.getVersion());
     File file {"main.cpp",  R"code(
 #include <iostream>
 int main() {
     std::cout << "Hello World" << std::endl;
     return 0;
-} )code" 
+} )code"
               };
-
-    if (compiler.compile(file)) {
-        logger().information("Compilation was completed");
-        logger().information("Compiling file: " + file.name);
-        // 1. prepare sandbox
-        Sandbox sandbox;
-        sandbox.addFile(file);
-        // 2. compile
-    } else {
-    }
+    // 1. prepare sandbox
+    logger().information("Environment preparation");
+    Sandbox sandbox;
+    sandbox.addFile(file);
+    // 2. compile
+    compiler.compile(sandbox);
+    logger().information("Compilation was completed");
 }
 
 int Application::main(const std::vector<std::string>& args)

@@ -30,5 +30,10 @@ bool GXXCompiler::compile(File file)
     logger.information("Compiling file: " + file.name);
     return true;
 }
+bool GXXCompiler::compile(Sandbox sandbox)
+{
+    logger.information("Compiling files: ");
+    return true;
+}
 }
 }
