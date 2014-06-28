@@ -1,0 +1,4 @@
+[submodule "tools/magic-makefile"]
+	path = tools/magic-makefile
+	url = https://bitbucket.org/mb1986/magic-makefile.git
+	branch = develop

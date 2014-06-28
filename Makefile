@@ -1,120 +1,55 @@
-# ============================================================
-#
-#   The MIT License (MIT)
-#
-#   Copyright (c) 2013-2014 Michał Blinkiewicz <michal.blinkiewicz@gmail.com>
-#
-#   Permission is hereby granted, free of charge, to any person obtaining a copy of
-#   this software and associated documentation files (the "Software"), to deal in
-#   the Software without restriction, including without limitation the rights to
-#   use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-#   the Software, and to permit persons to whom the Software is furnished to do so,
-#   subject to the following conditions:
-#
-#   The above copyright notice and this permission notice shall be included in all
-#   copies or substantial portions of the Software.
-#
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-#   FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-#   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-#   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-#   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# ============================================================
 
-# === settings
-# ============================================================
+# TODO --- docs...
+#TARGET_LIBS := lib1 lib2 lib3
 
-EXE_NAME := sphinx
+# TODO --- docs...
+TARGET_APPS := sphinx sphinx_tests
 
-COMPILER := g++
-COMPILER_FLAGS := -Wall -std=c++1y  -g
-INCLUDE_DIRS := src
+# TODO --- docs...
+CPP_COMPILER := g++
+C_COMPILER := gcc
 
+# TODO --- docs...
+CPP_COMPILER_FLAGS := -Wall -std=c++1y  -g 
+C_COMPILER_FLAGS :=
+
+# TODO --- docs...
 LINKER_FLAGS :=
-LIBRARY_DIRS :=
-LIBRARIES := PocoUtil PocoFoundation PocoNet
 
+# TODO --- docs...
+INCLUDE_DIRS := src
+sphinx_INCLUDE_DIRS := 
+sphinx_tests_INCLUDE_DIRS := tests
+
+# TODO --- docs...
+LIBRARY_DIRS :=
+sphinx_LIBRARY_DIRS :=
+sphinx_tests_LIBRARY_DIRS :=
+
+# TODO --- docs...
+LIBRARIES := PocoUtil PocoFoundation PocoNet
+sphinx_LIBRARIES := 
+sphinx_tests_LIBRARIES := 
+
+# TODO --- docs...
 SRC_DIR := src
+sphinx_SRC_DIR := src
+sphinx_tests_SRC_DIR := tests
 
 BUILD_DIR := build
-OBJ_DIR := obj
-DEP_DIR := dep
+sphinx_BUILD_DIR := build
+sphinx_tests_BUILD_DIR := build
 
-# === magic :) (do not change below!)
-# ============================================================
+OBJ_DIR := build/obj
+sphinx_OBJ_DIR := build/obj/sphinx
+sphinx_tests_OBJ_DIR := build/obj/tests
 
-OS := Other
-ifeq ($(OS),Windows_NT)
-	OS := Windows
-else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-		OS := Linux
-    endif
-    ifeq ($(UNAME_S),Darwin)
-		OS := MacOSX
-    endif
-endif
-# Make does not offer a recursive wildcard function, so here's one:
-rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
- 
-SRC_DIRS := $(sort $(SRC_DIR)/ $(dir $(call rwildcard,$(SRC_DIR)/))) # only one level of subdirs
+DEP_DIR := build/dep
+sphinx_DEP_DIR := build/dep/sphinx
+sphinx_tests_DEP_DIR := build/dep/tests
 
-SRCS := $(foreach sdir,$(SRC_DIRS),$(wildcard $(sdir)*.cpp))
-DEPS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/$(DEP_DIR)/%,$(SRCS:.cpp=.d))
-OBJS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/$(OBJ_DIR)/%,$(SRCS:.cpp=.o))
+include tools/magic-makefile/Makefile.magic
 
-$(info --- --------------------------------------------------)
-$(info ---       making | $(EXE_NAME) @ $(OS))
-$(info --- --------------------------------------------------)
-$(info ---     src dirs :)
-$(foreach sdir,$(SRC_DIRS),$(info ---              - $(sdir)))
-$(info ---      sources :)
-$(foreach src,$(SRCS),$(info ---              - $(src)))
-$(info --- dependencies :)
-$(foreach dep,$(DEPS),$(info ---              - $(dep)))
-$(info ---      objects :)
-$(foreach obj,$(OBJS),$(info ---              - $(obj)))
-$(info --- --------------------------------------------------)
-$(info ---    Makefile (c) 2013-2014 Michal Blinkiewicz)
-$(info --- --------------------------------------------------)
 
-CXX = $(COMPILER)
-CXXFLAGS = $(COMPILER_FLAGS) $(addprefix -I,$(INCLUDE_DIRS))
-LDFLAGS = $(LINKER_FLAGS) $(addprefix -L,$(LIBRARY_DIRS)) $(addprefix -l,$(LIBRARIES))
-
-ifeq "$(OS)" "Windows"
-MD = if not exist $(subst /,\\,$(1)) mkdir $(subst /,\\,$(1))
-RM = del $(1).exe ; rmdir /S /Q $(subst /,\\,$(2))
-else
-MD = mkdir -p $(1)
-RM = rm -rf $(1) $(2)
-endif
-
-# === main part
-# ============================================================
-
-all: $(EXE_NAME)
-
-$(EXE_NAME): $(OBJS)
-	$(CXX) $^ $(LDFLAGS) -o $@
-
-$(BUILD_DIR)/$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@$(call MD,$(@D))
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
--include $(DEPS)
-
-$(BUILD_DIR)/$(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp
-	@$(call MD,$(@D))
-	$(CXX) $(CXXFLAGS) -MF $@ -MG -MM -MP -MT $(BUILD_DIR)/$(OBJ_DIR)/$*.o -MT $@ $<
-
-clean:
-	-$(call RM,$(EXE_NAME),$(BUILD_DIR))
-
-.PHONY: all clean
-
-# ============================================================
-
+test: sphinx_tests
+	./sphinx_tests
