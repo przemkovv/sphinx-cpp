@@ -2,6 +2,7 @@
 #include "Sandbox.h"
 
 #include <string>
+#include <exception>
 #include <Poco/Path.h>
 #include <Poco/TemporaryFile.h>
 #include <fstream>
@@ -16,8 +17,12 @@ Sandbox::Sandbox(): logger(Poco::Logger::get(name()))
     project_src_path.pushDirectory("src");
     logger.information("Creating temporary dir: " + project_root_path.toString());
     Poco::File(project_root_path).createDirectories();
+    if (!Poco::File(project_root_path).exists()) 
+        throw std::invalid_argument("Cannot create directory: " + project_root_path.toString());
     logger.information("Creating temporary dir: " + project_src_path.toString());
     Poco::File(project_src_path).createDirectories();
+    if (!Poco::File(project_src_path).exists() )
+        throw std::invalid_argument("Cannot create directory: "+ project_src_path.toString());
 }
 
 Sandbox::~Sandbox()
@@ -31,9 +36,10 @@ void Sandbox::addFile(const File& file, const FileType file_type)
 void Sandbox::addFile(const File& file, Poco::Path destination)
 {
     Poco::File f(Poco::Path(destination, file.name));
-    std::ofstream filestream(f.path(), std::ofstream::out);
+    std::ofstream filestream(f.path(), std::ofstream::out); 
     filestream << file.content;
     filestream.close();
+    files.push_back(std::move(f));
 }
 void Sandbox::copyFile(Poco::Path source, FileType file_type)
 {

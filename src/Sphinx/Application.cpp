@@ -12,6 +12,7 @@
 #include <Poco/PatternFormatter.h>
 #include <Poco/AsyncChannel.h>
 
+
 #include "Sphinx/Net/Server.h"
 #include "Sphinx/Compilers/MakeCompiler.h"
 
@@ -104,9 +105,14 @@ int main() {
     logger().information("Environment preparation");
     Sandbox sandbox;
     sandbox.addFile(file);
+
     // 2. compile
-    compiler.compile(sandbox);
-    logger().information("Compilation was completed");
+    if (compiler.compile(sandbox)) {
+        logger().information("Compilation was completed succesfully");
+    } else {
+        logger().error("Compilation failed.");
+        logger().error(compiler.getErrors());
+    }
 }
 
 int Application::main(const std::vector<std::string>& args)

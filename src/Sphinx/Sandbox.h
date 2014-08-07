@@ -38,6 +38,10 @@ class Sandbox {
             return "Sphinx::Sandbox";
         }
 
+        const std::vector<Poco::File>& getFiles() const{
+            return files;
+        }
+
     protected:
     private:
         /* data */
