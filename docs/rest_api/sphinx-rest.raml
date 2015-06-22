@@ -1,0 +1,57 @@
+#%RAML 0.8
+---
+title: Sphinx REST API
+baseUri: http://api.sphinx.put.poznan.pl/{version}
+version: v1
+
+/users:
+    get:
+    post:
+    /{user_name}:
+        get:
+        put:
+        delete:
+
+/students:
+    get:
+        description: |
+            Get a list of students.
+    post:
+    /{student_id}:
+        get:
+        /courses:
+            get:
+                description: |
+                    Get a list of courses that the student be enrolled.
+            post:
+            /{course_name}:
+                get:
+                    description: |
+                        Get info about the student's course.
+                /units:
+                    get:
+                    /{unit_name}:
+                        
+
+/solutions:
+    /{solution_id}:
+        get:
+        put:
+        delete:
+        /compiler_output:
+            get:
+        /results:
+            get:
+        
+/courses:
+    /{course_name}:
+    get:
+    post:
+    /units:
+        /{unit_name}:
+        get:
+        post:
+        /tasks:
+            /{task_name}:
+            get:
+            post:
