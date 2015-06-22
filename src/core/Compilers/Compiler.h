@@ -2,8 +2,8 @@
 #pragma once
 
 #include <string>
-#include "File.h"
-#include "Sandbox.h"
+#include "../File.h"
+#include "../Sandbox.h"
 
 namespace Sphinx {
 namespace Compilers {

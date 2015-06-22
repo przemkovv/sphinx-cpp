@@ -1,6 +1,7 @@
 
 project(SphinxTests CXX)
 
+set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 include_directories(${SphinxCore_SOURCE_DIR})
 include_directories(${SphinxApp_SOURCE_DIR})
 include_directories(${SphinxTests_SOURCE_DIR})

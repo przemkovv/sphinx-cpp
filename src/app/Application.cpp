@@ -15,6 +15,7 @@
 
 #include "Net/Server.h"
 #include "Compilers/MakeCompiler.h"
+#include "Compilers/ClangCompiler.h"
 
 #include "File.h"
 #include "Sandbox.h"
@@ -92,7 +93,7 @@ void Application::runServerMode()
 void Application::runClientMode()
 {
     logger().information("I'm a client");
-    Compilers::MakeCompiler compiler;
+    Compilers::ClangCompiler compiler{""};
     logger().information(compiler.getVersion());
     File file {"main.cpp",  R"code(
 #include <iostream>

@@ -1,5 +1,5 @@
 
-#include "GXXCompiler.h"
+#include "ClangCompiler.h"
 
 #include <Poco/Process.h>
 #include <Poco/StreamCopier.h>
@@ -8,11 +8,11 @@
 namespace Sphinx {
 namespace Compilers {
 
-GXXCompiler::GXXCompiler(std::string executable_path) : Compiler(executable_path), logger(Poco::Logger::get(name()))
+ClangCompiler::ClangCompiler(std::string executable_path) : Compiler(executable_path), logger(Poco::Logger::get(name()))
 {
 }
 
-std::string GXXCompiler::getVersion()
+std::string ClangCompiler::getVersion()
 {
     Poco::Process::Args args;
     args.push_back("--version");
@@ -25,12 +25,12 @@ std::string GXXCompiler::getVersion()
 }
 
 
-bool GXXCompiler::compile(File file)
+bool ClangCompiler::compile(File file)
 {
     logger.information("Compiling file: " + file.name);
     return true;
 }
-bool GXXCompiler::compile(Sandbox sandbox)
+bool ClangCompiler::compile(Sandbox sandbox)
 {
     logger.information("Compiling files: ");
     return true;
