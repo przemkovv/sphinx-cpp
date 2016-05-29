@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Sphinx)
 
-add_definitions(
-    -std=c++1y
-    )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_definitions(
+    -std=c++1z
+    )
+#INSTALL(TARGETS HelloCMake DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(POCO_UTIL PocoUtil)

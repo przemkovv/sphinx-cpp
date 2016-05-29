@@ -1,12 +1,10 @@
 
-
-#include "MakeCompiler.h"
-
 #include <exception>
 #include <Poco/Process.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/PipeStream.h>
 
+#include "MakeCompiler.h"
 #include "utils.h"
 
 namespace Sphinx {
@@ -18,8 +16,9 @@ MakeCompiler::MakeCompiler(std::string executable_path, std::string output_filen
       makefile_path(makefile_path),
       logger(Poco::Logger::get(name()))
 {
-    if (!Poco::File(Poco::Path(makefile_path)).exists())
+    if (!Poco::File(Poco::Path(makefile_path)).exists()) {
         throw std::invalid_argument("The `Makefile` is not found. ("+makefile_path+")");
+    }
 }
 
 std::string MakeCompiler::getVersion()
@@ -27,7 +26,7 @@ std::string MakeCompiler::getVersion()
     Poco::Process::Args args;
     args.push_back("--version");
     Poco::Pipe out_pipe;
-    auto ph = Poco::Process::launch(executable_path, args, 0, &out_pipe, 0);
+    auto ph = Poco::Process::launch(executable_path, args, nullptr, &out_pipe, nullptr);
     Poco::PipeInputStream istr(out_pipe);
     std::string output;
     Poco::StreamCopier::copyToString(istr, output);
@@ -50,7 +49,7 @@ bool MakeCompiler::compile(Sandbox sandbox)
     auto ph = Poco::Process::launch(executable_path,
                                     args,
                                     sandbox.getProjectRootPath().toString(),
-                                    0, &out_pipe, &err_pipe);
+                                    nullptr, &out_pipe, &err_pipe);
     output = convertPipeToString(out_pipe);
     errors = convertPipeToString(err_pipe);
     logger.information(errors);
@@ -67,5 +66,5 @@ std::string MakeCompiler::convertPipeToString(Poco::Pipe& pipe)
     Poco::StreamCopier::copyToString(istr, output);
     return output;
 }
-}
-}
+} // namespace Compilers
+} // namespace Sphinx

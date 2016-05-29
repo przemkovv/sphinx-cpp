@@ -3,55 +3,74 @@
 
 #include <string>
 #include <exception>
+#include <fstream>
 #include <Poco/Path.h>
 #include <Poco/TemporaryFile.h>
-#include <fstream>
+
+#include "utils.h"
 
 namespace Sphinx {
 
+
 Sandbox::Sandbox(): logger(Poco::Logger::get(name()))
 {
-    project_root_path = Poco::TemporaryFile::tempName();
+    using namespace std::string_literals;
+    project_root_path = Poco::TemporaryFile::tempName(Poco::Path::temp() + "sphinx"s);
     project_root_path.makeDirectory();
-    project_src_path = project_root_path;
-    project_src_path.pushDirectory("src");
+    project_src_path = project_root_path + "src"s;
     logger.information("Creating temporary dir: " + project_root_path.toString());
     Poco::File(project_root_path).createDirectories();
-    if (!Poco::File(project_root_path).exists()) 
+
+    if (!Poco::File(project_root_path).exists()) {
         throw std::invalid_argument("Cannot create directory: " + project_root_path.toString());
+    }
+
     logger.information("Creating temporary dir: " + project_src_path.toString());
     Poco::File(project_src_path).createDirectories();
-    if (!Poco::File(project_src_path).exists() )
+
+    if (!Poco::File(project_src_path).exists()) {
         throw std::invalid_argument("Cannot create directory: "+ project_src_path.toString());
+    }
 }
 
-Sandbox::~Sandbox()
+Sandbox::Sandbox(std::initializer_list<File> files)
+    : Sandbox()
 {
+    addFiles(files);
 }
 
-void Sandbox::addFile(const File& file, const FileType file_type)
+template<class C>
+void Sandbox::addFiles(const C& files)
 {
-    addFile(file, getDestinationPath(file_type));
+    for (const auto& file : files) {
+        addFile(file);
+    }
 }
-void Sandbox::addFile(const File& file, Poco::Path destination)
+
+void Sandbox::addFile(File file)
 {
-    Poco::File f(Poco::Path(destination, file.name));
-    std::ofstream filestream(f.path(), std::ofstream::out); 
+    addFile(file, getDestinationPath(file.file_type));
+}
+void Sandbox::addFile(File file, Poco::Path destination)
+{
+    file.full_path = Poco::Path(destination, file.name);
+    std::ofstream filestream(file.full_path.toString(), std::ofstream::out);
     filestream << file.content;
     filestream.close();
-    files.push_back(std::move(f));
+    files.emplace_back(std::move(file));
 }
 void Sandbox::copyFile(Poco::Path source, FileType file_type)
 {
     Poco::File file(source);
     file.copyTo(getDestinationPath(file_type).toString());
 }
-Poco::Path  Sandbox::getDestinationPath(FileType file_type)
+Poco::Path Sandbox::getDestinationPath(FileType file_type)
 {
     Poco::Path destination;
 
     switch (file_type) {
         case FileType::Source:
+        case FileType::Header:
             destination = project_src_path;
             break;
 
@@ -59,6 +78,7 @@ Poco::Path  Sandbox::getDestinationPath(FileType file_type)
             destination = project_root_path;
             break;
     }
+
     return destination;
 }
-}
+} // namespace Sphinx

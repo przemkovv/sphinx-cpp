@@ -20,4 +20,4 @@ class RootHandler : public Poco::Net::HTTPRequestHandler {
     private:
         /* data */
 };
-}
+} // namespace Sphinx

@@ -19,4 +19,4 @@ class DataHandler : public Poco::Net::HTTPRequestHandler {
     private:
         /* data */
 };
-}
+} // namespace Sphinx

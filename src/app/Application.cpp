@@ -1,7 +1,5 @@
 
-#include "Application.h"
-
-
+#include <memory>
 #include <thread>
 #include <chrono>
 #include <iostream>
@@ -17,6 +15,7 @@
 #include "Compilers/MakeCompiler.h"
 #include "Compilers/ClangCompiler.h"
 
+#include "Application.h"
 #include "File.h"
 #include "Sandbox.h"
 
@@ -93,21 +92,38 @@ void Application::runServerMode()
 void Application::runClientMode()
 {
     logger().information("I'm a client");
-    Compilers::ClangCompiler compiler{""};
+    Compilers::ClangCompiler compiler{"clang++"};
     logger().information(compiler.getVersion());
-    File file {"main.cpp",  R"code(
+// 1. prepare sandbox
+    logger().information("Environment preparation");
+    Sandbox sandbox{
+        {
+            "foo.cpp",  R"code(
+#include <iostream>
+int foo() {
+    std::cout << "int foo(){}" << std::endl;
+    return 0;
+} )code"
+
+        },
+        {
+            "foo.h",  R"code(
 #include <iostream>
 int main() {
     std::cout << "Hello World" << std::endl;
     return 0;
 } )code"
-              };
-    // 1. prepare sandbox
-    logger().information("Environment preparation");
-    Sandbox sandbox;
-    sandbox.addFile(file);
+        },
+        {
+            "main.cpp",  R"code(
+#include <iostream>
+int main() {
+    std::cout << "Hello World" << std::endl;
+    return 0;
+} )code"
+        }};
 
-    // 2. compile
+// 2. compile
     if (compiler.compile(sandbox)) {
         logger().information("Compilation was completed succesfully");
     } else {
@@ -130,4 +146,4 @@ int Application::main(const std::vector<std::string>& args)
 
     return EXIT_OK;
 }
-}
+} // namespace Sphinx

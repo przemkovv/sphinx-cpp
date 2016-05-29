@@ -1,23 +1,27 @@
 
 #pragma once
 
+
 #include <string>
 #include <Poco/Logger.h>
-#include "File.h"
+#include "Sphinx/File.h"
 #include "Compiler.h"
 
 namespace Sphinx {
 namespace Compilers {
 
-class GXXCompiler : public Compiler {
+class ClangParser : public Compiler {
     public:
-        GXXCompiler(std::string executable_path);
+        ClangParser();
         std::string getVersion();
 
         bool compile(File file);
         bool compile(Sandbox sandbox) ;
 
-        const char *name() { return "Sphinx::Compilers::GXXCompiler"; }
+        const char * name() { return "Sphinx::Compilers::ClangParser"; }
+
+        virtual std::string getOutput() const ;
+        virtual std::string getErrors() const ;
 
 
     private:

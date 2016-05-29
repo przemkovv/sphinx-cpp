@@ -2,8 +2,11 @@
 #pragma once
 
 #include <string>
-#include "../File.h"
-#include "../Sandbox.h"
+#include <tuple>
+#include <vector>
+
+#include "File.h"
+#include "Sandbox.h"
 
 namespace Sphinx {
 namespace Compilers {
@@ -13,6 +16,8 @@ class Compiler {
         std::string executable_path;
         Compiler(std::string executable_path) :
             executable_path(executable_path) { }
+
+        std::tuple<std::string, std::string> run(std::vector<std::string> args, std::string root_path = ".");
 
         std::string output_filepath;
     public:

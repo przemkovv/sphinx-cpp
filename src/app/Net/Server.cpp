@@ -14,7 +14,6 @@
 #include "RootHandler.h"
 #include "DataHandler.h"
 
-using Poco::AutoPtr;
 using Poco::Net::ServerSocket;
 using Poco::SharedPtr;
 
