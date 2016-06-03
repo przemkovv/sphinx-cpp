@@ -9,10 +9,12 @@
 namespace Sphinx {
 namespace Compilers {
 
+namespace fs = boost::filesystem;
+
 Compiler::Compiler(std::string executable_path) :
      executable_path(executable_path)
 {
-    if (!Poco::File(executable_path).exists()) {
+    if (!fs::exists(executable_path)) {
         throw std::invalid_argument(fmt::format("The binary '{}' doesn't exist (compiler {})",
                                                 executable_path, name()));
     }

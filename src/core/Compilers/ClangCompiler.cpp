@@ -37,7 +37,7 @@ bool ClangCompiler::compile(Sandbox sandbox)
     using namespace ranges;
     auto source_files = sandbox.getFiles() 
         | view::remove_if([](const auto& file){return file.file_type != FileType::Source;})
-        | view::transform([](const auto& file){ return file.full_path.toString(); });
+        | view::transform([](const auto& file){ return file.full_path.string(); });
 
     for (auto file : source_files) {
         logger->info(file);
@@ -45,7 +45,7 @@ bool ClangCompiler::compile(Sandbox sandbox)
     auto compiler_args = CXXFlags;
     compiler_args.insert(compiler_args.end(), source_files.begin(), source_files.end());
 
-    result = run(compiler_args, sandbox.getProjectRootPath().toString());
+    result = run(compiler_args, sandbox.getProjectRootPath().string());
     return result.exit_code == static_cast<int>(Sphinx::ExitCode::OK);
 }
 

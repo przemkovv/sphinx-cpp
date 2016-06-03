@@ -104,7 +104,8 @@ void Application::runClientMode()
     Compilers::ClangCompiler compiler{clangxx_path};
     logger->info(compiler.getVersion());
 
-    if (compiler.compile(SampleData::simpleHelloWorld())) {
+    auto sample = SampleData::simpleHelloWorld();
+    if (compiler.compile(sample)) {
         logger->info("Compilation was completed succesfully");
     } else {
         logger->error("Compilation failed.");

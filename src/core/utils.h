@@ -2,7 +2,6 @@
 #pragma once
 
 #include <string>
-#include <Poco/Path.h>
 #include <Poco/PipeStream.h>
 
 namespace Sphinx {
@@ -29,7 +28,6 @@ enum class ExitCode
     CONFIG      = 78  /// configuration error
 };
 
-Poco::Path operator+(Poco::Path path, std::string segment);
 std::string to_string(Poco::Pipe &pipe);
 
 }

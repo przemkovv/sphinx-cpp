@@ -2,11 +2,11 @@
 
 #include <string>
 #include <istream>
-#include <Poco/Logger.h>
 #include <Poco/Pipe.h>
 #include "File.h"
 #include "Compiler.h"
 #include "Sandbox.h"
+#include "Logger.h"
 
 namespace Sphinx {
 namespace Compilers {
@@ -29,12 +29,12 @@ class MakeCompiler : public Compiler {
 
 
     private:
-        std::string output_filename;
-        std::string makefile_path;
+        boost::filesystem::path output_filename;
+        boost::filesystem::path makefile_path;
         std::string output;
         std::string errors;
 
-        Poco::Logger& logger;
+        Logger logger;
         std::string convertPipeToString(Poco::Pipe& pipe);
 
 

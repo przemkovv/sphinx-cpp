@@ -13,6 +13,7 @@ find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(POCO_UTIL PocoUtil)
 find_package (Threads REQUIRED)
+find_package(Boost 1.60 COMPONENTS filesystem)
 
 add_subdirectory(src/core)
 #add_subdirectory(src/net)
