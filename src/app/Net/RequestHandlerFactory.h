@@ -6,7 +6,7 @@
 #include <string>
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPServerRequest.h>
-#include <Poco/Logger.h>
+#include "Logger.h"
 
 namespace Sphinx {
 
@@ -25,7 +25,7 @@ class RequestHandlerFactory : public Poco::Net::HTTPRequestHandlerFactory {
         }
     private:
         /* data */
-        Poco::Logger& logger;
+        Logger logger;
         std::map<std::string, request_handler_type> request_handlers;
 };
 

@@ -20,16 +20,16 @@ using Poco::SharedPtr;
 namespace Sphinx {
 namespace Net {
 
-Server::Server() : logger(Poco::Logger::get(name()))
+Server::Server() : logger(make_logger(name()))
 {
-    logger.information("Start");
+    logger->info("Start");
 }
 
 Server::~Server()
 {
-    logger.information("Stopping..");
+    logger->info("Stopping..");
     http_server->stop();
-    logger.information("Stopped");
+    logger->info("Stopped");
 }
 
 void Server::addRequestHandlers(RequestHandlerFactory *request_handler_factory)

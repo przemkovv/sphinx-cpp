@@ -9,6 +9,7 @@
 #include <Poco/FormattingChannel.h>
 #include <Poco/PatternFormatter.h>
 #include <Poco/AsyncChannel.h>
+#include <Poco/Util/JSONConfiguration.h>
 
 
 #include "Net/Server.h"
@@ -18,11 +19,11 @@
 #include "Application.h"
 #include "File.h"
 #include "Sandbox.h"
+#include "SampleData.h"
 
 using Poco::AutoPtr;
 using Poco::Util::Option;
 using Poco::Util::OptionCallback;
-using Poco::Logger;
 using Poco::ConsoleChannel;
 using Poco::PatternFormatter;
 using Poco::AsyncChannel;
@@ -65,70 +66,49 @@ void Application::defineOptions(Poco::Util::OptionSet& options)
                       .required(false)
                       .repeatable(false)
                       .binding("application.server-mode"));
+    options.addOption(Option("config", "", "JSON configuration file")
+                      .required(false)
+                      .repeatable(false)
+                      .argument("file")
+                      .binding("application.config"));
 }
 
 void Application::configureLogger()
 {
-    AutoPtr<ConsoleChannel> console(new ConsoleChannel);
-    AutoPtr<PatternFormatter> pattern_formatter(new PatternFormatter);
-    pattern_formatter->setProperty("pattern", "%Y-%m-%d %H:%M:%S %s: %t");
-    AutoPtr<FormattingChannel> formatting_channel(new FormattingChannel(pattern_formatter, console));
-    AutoPtr<AsyncChannel> asyncChannel(new AsyncChannel(formatting_channel));
-    Logger::root().setChannel(asyncChannel);
-    logger().setChannel(asyncChannel);
+    //AutoPtr<ConsoleChannel> console(new ConsoleChannel);
+    //AutoPtr<PatternFormatter> pattern_formatter(new PatternFormatter);
+    //pattern_formatter->setProperty("pattern", "%Y-%m-%d %H:%M:%S %s: %t");
+    //AutoPtr<FormattingChannel> formatting_channel(new FormattingChannel(pattern_formatter, console));
+    //AutoPtr<AsyncChannel> asyncChannel(new AsyncChannel(formatting_channel));
+    //Logger::root().setChannel(asyncChannel);
+    //logger().setChannel(asyncChannel);
+    //auto logger = std::make_shared<spdlog::logger>();
+    logger = make_logger("Application");
 }
 
 void Application::runServerMode()
 {
-    logger().information("I'm a server");
+    logger->info("I'm a server");
     Net::Server server;
     server.listen();
 
     while (!terminate.tryWait(1000)) {
-        logger().information("Going sleep...");
+        logger->info("Going sleep...");
     }
 }
 
 void Application::runClientMode()
 {
-    logger().information("I'm a client");
-    Compilers::ClangCompiler compiler{"clang++"};
-    logger().information(compiler.getVersion());
-// 1. prepare sandbox
-    logger().information("Environment preparation");
-    Sandbox sandbox{
-        {
-            "foo.cpp",  R"code(
-#include <iostream>
-int foo() {
-    std::cout << "int foo(){}" << std::endl;
-    return 0;
-} )code"
+    logger->info("I'm a client");
+    auto clangxx_path = config().getString("application.compilers.clang.path");
+    Compilers::ClangCompiler compiler{clangxx_path};
+    logger->info(compiler.getVersion());
 
-        },
-        {
-            "foo.h",  R"code(
-#include <iostream>
-int main() {
-    std::cout << "Hello World" << std::endl;
-    return 0;
-} )code"
-        },
-        {
-            "main.cpp",  R"code(
-#include <iostream>
-int main() {
-    std::cout << "Hello World" << std::endl;
-    return 0;
-} )code"
-        }};
-
-// 2. compile
-    if (compiler.compile(sandbox)) {
-        logger().information("Compilation was completed succesfully");
+    if (compiler.compile(SampleData::simpleHelloWorld())) {
+        logger->info("Compilation was completed succesfully");
     } else {
-        logger().error("Compilation failed.");
-        logger().error(compiler.getErrors());
+        logger->error("Compilation failed.");
+        logger->error(compiler.getErrors());
     }
 }
 
@@ -136,6 +116,11 @@ int Application::main(const std::vector<std::string>& args)
 {
     if (!helpRequested) {
         configureLogger();
+
+        if (config().has("application.config")) {
+            logger->info("Loading JSON config: {}", config().getString("application.config"));
+            loadConfiguration(config().getString("application.config"));
+        }
 
         if (config().has("application.server-mode")) {
             runServerMode();

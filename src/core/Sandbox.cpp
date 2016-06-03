@@ -12,24 +12,24 @@
 namespace Sphinx {
 
 
-Sandbox::Sandbox(): logger(Poco::Logger::get(name()))
+Sandbox::Sandbox(): logger(make_logger(name()))
 {
     using namespace std::string_literals;
     project_root_path = Poco::TemporaryFile::tempName(Poco::Path::temp() + "sphinx"s);
     project_root_path.makeDirectory();
     project_src_path = project_root_path + "src"s;
-    logger.information("Creating temporary dir: " + project_root_path.toString());
+    logger->info("Creating temporary dir: {}", project_root_path.toString());
     Poco::File(project_root_path).createDirectories();
 
     if (!Poco::File(project_root_path).exists()) {
-        throw std::invalid_argument("Cannot create directory: " + project_root_path.toString());
+        throw std::invalid_argument(fmt::format("Cannot create directory: {} ", project_root_path.toString()));
     }
 
-    logger.information("Creating temporary dir: " + project_src_path.toString());
+    logger->info("Creating temporary dir: {}", project_src_path.toString());
     Poco::File(project_src_path).createDirectories();
 
     if (!Poco::File(project_src_path).exists()) {
-        throw std::invalid_argument("Cannot create directory: "+ project_src_path.toString());
+        throw std::invalid_argument(fmt::format("Cannot create directory: {}", project_src_path.toString()));
     }
 }
 

@@ -5,11 +5,11 @@
 #include <vector>
 #include <map>
 
-#include <Poco/Logger.h>
 #include <Poco/Path.h>
 #include <Poco/File.h>
 
 #include "File.h"
+#include "Logger.h"
 
 namespace Sphinx {
 
@@ -38,10 +38,11 @@ class Sandbox {
         Poco::Path project_root_path;
         Poco::Path project_src_path;
         std::vector<File> files;
-        Poco::Logger& logger;
+        Logger logger;
 
         void addFile(File file, Poco::Path destination);
         Poco::Path getDestinationPath(FileType file_type);
+
 
 };
 }

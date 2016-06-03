@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include <Poco/Logger.h>
 #include <Poco/Net/HTTPServer.h>
 #include <memory>
 
 #include "RequestHandlerFactory.h"
+#include "Logger.h"
 
 namespace Sphinx {
 namespace Net {
@@ -26,7 +26,7 @@ class Server {
 
     private:
         /* data */
-        Poco::Logger& logger;
+        Logger logger;
         std::unique_ptr<Poco::Net::HTTPServer> http_server;
 };
 

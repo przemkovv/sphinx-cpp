@@ -1,10 +1,11 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <Poco/Logger.h>
+#include "Logger.h"
 #include "File.h"
 #include "Compiler.h"
 
@@ -20,17 +21,18 @@ class ClangCompiler : public Compiler {
         ClangCompiler(std::string executable_path);
         std::string getVersion();
 
-        bool compile(File file);
-        bool compile(Sandbox sandbox) ;
+        bool compile(File file) override;
+        bool compile(Sandbox sandbox)  override;
 
-        const char *name() { return "Sphinx::Compilers::ClangCompiler"; }
+        virtual const char *name() override { return "Sphinx::Compilers::ClangCompiler"; }
 
-        std::string getOutput() const { return ""; }
-        std::string getErrors() const { return ""; }
+        std::string getOutput() const override { return result.out; }
+        std::string getErrors() const override{ return result.err; }
 
 
     private:
-        Poco::Logger& logger;
+        CompilerOutput result;
+        Logger logger;
 };
 }
 }

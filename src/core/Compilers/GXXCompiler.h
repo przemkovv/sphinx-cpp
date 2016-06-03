@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-#include <Poco/Logger.h>
+#include "Logger.h"
 #include "File.h"
 #include "Compiler.h"
 
@@ -21,7 +21,7 @@ class GXXCompiler : public Compiler {
 
 
     private:
-        Poco::Logger& logger;
+        Logger logger;
 };
 }
 }

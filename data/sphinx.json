@@ -1,0 +1,14 @@
+{
+  "application": {
+  "compilers": {
+    "clang" : {
+      "flags" : [
+        "-std=c++14",
+        "-Wall",
+        "-Werror"
+      ],
+      "path" : "/usr/bin/clang++"
+    }
+  }
+  }
+}

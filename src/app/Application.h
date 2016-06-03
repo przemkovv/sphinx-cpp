@@ -4,6 +4,8 @@
 #include <Poco/Util/Application.h>
 #include <Poco/Event.h>
 
+#include "Logger.h"
+
 namespace Sphinx {
 
 class Application : public Poco::Util::Application {
@@ -20,6 +22,7 @@ class Application : public Poco::Util::Application {
 
     private:
         Poco::Event terminate;
+        Logger logger;
 
 };
 

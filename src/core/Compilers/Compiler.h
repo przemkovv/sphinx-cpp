@@ -11,15 +11,21 @@
 namespace Sphinx {
 namespace Compilers {
 
+struct CompilerOutput {
+    int exit_code;
+    std::string out;
+    std::string err;
+};
+
 class Compiler {
     protected:
         std::string executable_path;
-        Compiler(std::string executable_path) :
-            executable_path(executable_path) { }
+        Compiler(std::string executable_path);
 
-        std::tuple<std::string, std::string> run(std::vector<std::string> args, std::string root_path = ".");
+        CompilerOutput run(std::vector<std::string> args, std::string root_path = ".");
 
         std::string output_filepath;
+
     public:
         std::string getVersion();
         void compile();
@@ -29,6 +35,9 @@ class Compiler {
 
         virtual std::string getOutput() const = 0;
         virtual std::string getErrors() const = 0;
+
+        virtual const char *name() { return "Sphinx::Compilers::Compiler"; }
+        
 };
 
 

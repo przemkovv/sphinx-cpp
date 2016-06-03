@@ -6,11 +6,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_definitions(
     -std=c++1z
+    -g
     )
 #INSTALL(TARGETS HelloCMake DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(POCO_UTIL PocoUtil)
+find_package (Threads REQUIRED)
 
 add_subdirectory(src/core)
 #add_subdirectory(src/net)

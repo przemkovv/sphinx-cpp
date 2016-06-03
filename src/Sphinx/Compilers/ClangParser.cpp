@@ -14,7 +14,7 @@ constexpr auto make_array(Ts&&... ts)
 
 namespace Sphinx::Compilers { 
 
-    ClangParser::ClangParser() : Compiler{}, logger(Poco::Logger::get(name()))
+    ClangParser::ClangParser() : Compiler{}, logger(spdlog::stdout_logger_st(name(), true))
     {
     }
 
@@ -46,7 +46,7 @@ namespace Sphinx::Compilers {
 
             auto index = clang_createIndex(0, 0);
             auto tu = clang_parseTranslationUnit(index,
-                    0, std::begin(args), args.size(), 0, 0, CXTranslationUnit_None);
+                    0, begin(args.size(), 0, 0, CXTranslationUnit_None);
 
             for (uint32_t i = 0, N = clang_getNumDiagnostics(tu);  i != N; ++i) {
                 auto diag = clang_getDiagnostic(tu, i);
