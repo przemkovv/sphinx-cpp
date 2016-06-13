@@ -27,16 +27,18 @@ class Compiler {
         std::string output_filepath;
 
     public:
-        std::string getVersion();
+        std::string getOutputFilePath() const { return output_filepath; }
+        virtual std::string getVersion() = 0;
         void compile();
         virtual bool compile(File file) = 0;
         virtual bool compile(Sandbox sandbox) = 0;
-        std::string getOutputFilePath() const { return output_filepath; }
 
         virtual std::string getOutput() const = 0;
         virtual std::string getErrors() const = 0;
 
         virtual const char *name() { return "Sphinx::Compilers::Compiler"; }
+
+        virtual ~Compiler() { }
         
 };
 

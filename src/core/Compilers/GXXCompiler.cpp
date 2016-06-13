@@ -34,7 +34,7 @@ bool GXXCompiler::compile(File file)
 }
 bool GXXCompiler::compile(Sandbox sandbox)
 {
-    logger->info("Compiling files: ");
+    logger->info("Compiling files: {} ", sandbox.name());
     return true;
 }
 } // namespace Compilers

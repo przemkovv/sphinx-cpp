@@ -19,12 +19,12 @@ class ClangCompiler : public Compiler {
         };
             
         ClangCompiler(std::string executable_path);
-        std::string getVersion();
+        std::string getVersion() override;
 
         bool compile(File file) override;
         bool compile(Sandbox sandbox)  override;
 
-        virtual const char *name() override { return "Sphinx::Compilers::ClangCompiler"; }
+        const char *name() override { return "Sphinx::Compilers::ClangCompiler"; }
 
         std::string getOutput() const override { return result.out; }
         std::string getErrors() const override{ return result.err; }

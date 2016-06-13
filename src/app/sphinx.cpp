@@ -1,16 +1,18 @@
 
+#include <stdexcept>
 #include <iostream>
+
 #include <Poco/Util/OptionException.h>
 #include "Application.h"
 
 int main(int argc, char *argv[])
 {
     try {
-        Sphinx::Application sphinx;
-        sphinx.init(argc, argv);
+        Sphinx::Application sphinx{{argv+1, argv+argc}};
+        //sphinx.init(argc, argv);
         return sphinx.run();
-    } catch (Poco::Util::UnknownOptionException& e) {
-        std::cout << e.name() << ": "  << e.message() << std::endl;
+    } catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
         return -1;
     }
 }

@@ -9,7 +9,7 @@
 namespace Sphinx {
 namespace Compilers {
 
-namespace fs = boost::filesystem;
+namespace fs = ::boost::filesystem;
 
 Compiler::Compiler(std::string executable_path) :
      executable_path(executable_path)

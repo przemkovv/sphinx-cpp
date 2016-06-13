@@ -22,9 +22,9 @@ struct File {
     /* data */
     std::string name;
     std::string content;
-    FileType file_type;
-
     boost::filesystem::path full_path;
+
+    FileType file_type;
 
     File(std::string name, std::string content);
     File(std::string name, std::string content, FileType file_type);
