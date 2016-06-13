@@ -17,7 +17,7 @@ std::string to_string(Poco::Pipe &pipe) {
 
 namespace std {
 
-std::ostream& operator<< (std::ostream& out, const boost::program_options::variable_value& v)
+std::ostream& operator<< (std::ostream& out, const boost::program_options::variable_value& /*v*/)
 {
     return out;
 }

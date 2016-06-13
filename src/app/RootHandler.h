@@ -9,7 +9,7 @@ namespace Sphinx {
 
 class RootHandler : public Poco::Net::HTTPRequestHandler {
     public:
-        void handleRequest(Poco::Net::HTTPServerRequest& request, Poco::Net::HTTPServerResponse& response)
+        void handleRequest(Poco::Net::HTTPServerRequest& /*request*/, Poco::Net::HTTPServerResponse& response)
         {
             response.setChunkedTransferEncoding(true);
             response.setContentType("text/html");

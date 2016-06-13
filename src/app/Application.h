@@ -15,7 +15,7 @@ class Application {
         void displayHelp() ;
         void configureLogger(spdlog::level::level_enum level) ;
         void runClientMode();
-        void runServerMode();
+        [[noreturn]] void runServerMode();
 
         boost::program_options::options_description prepare_options_description();
         boost::program_options::variables_map parse_command_line_options(const std::vector<std::string>& arguments);

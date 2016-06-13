@@ -17,7 +17,6 @@ class Sandbox {
     public:
         Sandbox();
         Sandbox(std::initializer_list<File> files);
-        ~Sandbox() = default;
         void addFile(File file);
 
         template<class C>

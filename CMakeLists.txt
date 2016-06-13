@@ -7,11 +7,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_definitions(
     -std=c++1z
     -g
-    -Wall
-    #-Weverything
-    #-Wno-c++98-compat
-    #-Wno-exit-time-destructors
-    #-Wno-global-constructors
+    #-Wall
+    -Weverything
+    -Wno-c++98-compat
+    -Wno-exit-time-destructors
+    -Wno-global-constructors
+    -Wno-padded
+    -Wno-weak-vtables
+    -Wno-shadow
+    -Weffc++
     -Werror
     )
 #INSTALL(TARGETS HelloCMake DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
