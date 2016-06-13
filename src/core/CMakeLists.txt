@@ -1,6 +1,9 @@
 
 project(SphinxCore CXX)
 
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
+
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
 include_directories(${SphinxCore_SOURCE_DIR})
