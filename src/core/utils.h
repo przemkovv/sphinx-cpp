@@ -3,11 +3,6 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>
-#include <iterator>
-#include <algorithm>
-#include <vector>
-#include <map>
 #include <boost/program_options.hpp>
 #include <Poco/PipeStream.h>
 

@@ -79,9 +79,10 @@ void Application::runServerMode()
     logger->info("I'm a server");
     Net::Server server;
     server.listen();
-
-    while (!terminate.tryWait(1000)) {
+    using namespace std::chrono_literals;
+    while (true) {
         logger->info("Going sleep...");
+        std::this_thread::sleep_for(1000ms);
     }
 }
 

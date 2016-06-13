@@ -3,8 +3,6 @@
 
 
 #include <Poco/StreamCopier.h>
-#include <algorithm>
-#include <sstream>
 
 namespace Sphinx {
 

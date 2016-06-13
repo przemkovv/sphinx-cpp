@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <Poco/Event.h>
 
 #include <boost/program_options.hpp>
 
@@ -21,7 +20,6 @@ class Application {
         boost::program_options::options_description prepare_options_description();
         boost::program_options::variables_map parse_command_line_options(const std::vector<std::string>& arguments);
     private:
-        Poco::Event terminate;
         Logger logger;
 
         const std::vector<std::string> args;

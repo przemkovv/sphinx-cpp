@@ -17,7 +17,7 @@ add_definitions(
 #INSTALL(TARGETS HelloCMake DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
-find_library(POCO_UTIL PocoUtil)
+#find_library(POCO_UTIL PocoUtil)
 find_package (Threads REQUIRED)
 find_package(Boost 1.60 COMPONENTS filesystem program_options)
 
