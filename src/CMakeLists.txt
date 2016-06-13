@@ -16,9 +16,10 @@ list(REMOVE_DUPLICATES Sphinx_INCLUDE_DIRS)
 include_directories(${Sphinx_INCLUDE_DIRS})
 add_executable(sphinx ${Sphinx_SOURCES})
 
+
 find_library(POCO_UTIL PocoUtil)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(LIBCLANG_LIBRARY NAMES clang)
 
-target_link_libraries(sphinx ${POCO_FOUNDATION} ${POCO_UTIL} ${POCO_NET} ${LIBCLANG_LIBRARY})
+target_link_libraries(sphinx ${CMAKE_THREAD_LIBS_INIT} ${POCO_FOUNDATION} ${POCO_UTIL} ${POCO_NET} ${LIBCLANG_LIBRARY})

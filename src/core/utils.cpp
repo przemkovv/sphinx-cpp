@@ -5,11 +5,6 @@
 #include <Poco/StreamCopier.h>
 
 namespace Sphinx {
-Poco::Path operator+(Poco::Path path, std::string segment)
-{
-    path.append(segment);
-    return path;
-}
 
 std::string to_string(Poco::Pipe &pipe) {
     Poco::PipeInputStream istr(pipe);
@@ -18,5 +13,12 @@ std::string to_string(Poco::Pipe &pipe) {
     return output;
 }
 
+} // namespace Sphinx
 
-} // Sphinx
+namespace std {
+
+std::ostream& operator<< (std::ostream& out, const boost::program_options::variable_value& v)
+{
+    return out;
+}
+} // namespace std

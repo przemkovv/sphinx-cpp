@@ -3,14 +3,9 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
-#include <Poco/Util/HelpFormatter.h>
-
-#include <Poco/ConsoleChannel.h>
-#include <Poco/FormattingChannel.h>
-#include <Poco/PatternFormatter.h>
-#include <Poco/AsyncChannel.h>
 
 
+#include "utils.h"
 #include "Net/Server.h"
 #include "Compilers/MakeCompiler.h"
 #include "Compilers/ClangCompiler.h"
@@ -18,132 +13,110 @@
 #include "Application.h"
 #include "File.h"
 #include "Sandbox.h"
+#include "SampleData.h"
 
-using Poco::AutoPtr;
-using Poco::Util::Option;
-using Poco::Util::OptionCallback;
-using Poco::Logger;
-using Poco::ConsoleChannel;
-using Poco::PatternFormatter;
-using Poco::AsyncChannel;
-using Poco::FormattingChannel;
 
 namespace Sphinx {
 
-void Application::initalize(Poco::Util::Application& self)
+namespace po = boost::program_options;
+
+Application::Application(const std::vector<std::string>& args) :
+    args(args),
+    options_description(prepare_options_description())
 {
-    Poco::Util::Application::initialize(self);
+    config = parse_command_line_options(args);
+
+    auto log_level = config["log_level"].as<int>();
+    configureLogger(static_cast<spdlog::level::level_enum>(log_level));
+
+    logger->debug("Command line arguments: {}", args);
+    logger->debug("Configuration {}", config);
 }
 
-void Application::handleHelp(const std::string& name, const std::string& value)
+po::options_description Application::prepare_options_description()
 {
-    helpRequested = true;
-    displayHelp();
-    stopOptionsProcessing();
+    po::options_description desc("Allowed options");
+    desc.add_options()
+    ("help,I", "Display help information")
+    ("client-mode,c", "Client mode")
+    ("server-mode,s", "Server mode")
+    ("log_level", po::value<int>()->default_value(spdlog::level::info), "Logging level")
+    ("config", po::value<std::vector<std::string>>(), "Configuration file");
+    desc.add_options()
+    ("compilers.clang++.flags", "Flags for the clang compiler.")
+    ("compilers.clang++.path", "Path for the clang++ executable.");
+    return desc;
 }
 
-void Application::displayHelp()
+
+po::variables_map Application::parse_command_line_options(const std::vector<std::string>& args)
 {
-    Poco::Util::HelpFormatter helpFormatter(options());
-    helpFormatter.setCommand(commandName());
-    helpFormatter.setUsage("OPTIONS");
-    helpFormatter.format(std::cout);
+    po::variables_map vm;
+    po::store(po::command_line_parser(args).options(options_description).run(), vm);
+
+    if (vm.count("config")) {
+        auto config_files = vm["config"].as<std::vector<std::string>>();
+        for (auto config_file : config_files) {
+            std::ifstream file(config_file);
+            const bool allow_unregistered = false;
+            auto parsed_options = po::parse_config_file(file, options_description, allow_unregistered);
+            po::store(parsed_options, vm);
+        }
+    }
+
+    po::notify(vm);
+    return vm;
 }
 
-void Application::defineOptions(Poco::Util::OptionSet& options)
+void Application::configureLogger(spdlog::level::level_enum log_level)
 {
-    Poco::Util::Application::defineOptions(options);
-    options.addOption(Option("help", "h", "display help information")
-                      .required(false)
-                      .repeatable(false)
-                      .callback(OptionCallback<Application> (this, &Application::handleHelp)));
-    options.addOption(Option("client", "c", "client mode")
-                      .required(false)
-                      .repeatable(false)
-                      .binding("application.client-mode"));
-    options.addOption(Option("server", "s", "server mode")
-                      .required(false)
-                      .repeatable(false)
-                      .binding("application.server-mode"));
-}
-
-void Application::configureLogger()
-{
-    AutoPtr<ConsoleChannel> console(new ConsoleChannel);
-    AutoPtr<PatternFormatter> pattern_formatter(new PatternFormatter);
-    pattern_formatter->setProperty("pattern", "%Y-%m-%d %H:%M:%S %s: %t");
-    AutoPtr<FormattingChannel> formatting_channel(new FormattingChannel(pattern_formatter, console));
-    AutoPtr<AsyncChannel> asyncChannel(new AsyncChannel(formatting_channel));
-    Logger::root().setChannel(asyncChannel);
-    logger().setChannel(asyncChannel);
+    spdlog::set_level(log_level);
+    logger = make_logger("Application");
 }
 
 void Application::runServerMode()
 {
-    logger().information("I'm a server");
+    logger->info("I'm a server");
     Net::Server server;
     server.listen();
-
-    while (!terminate.tryWait(1000)) {
-        logger().information("Going sleep...");
+    using namespace std::chrono_literals;
+    while (true) {
+        logger->info("Going sleep...");
+        std::this_thread::sleep_for(1000ms);
     }
 }
 
 void Application::runClientMode()
 {
-    logger().information("I'm a client");
-    Compilers::ClangCompiler compiler{"clang++"};
-    logger().information(compiler.getVersion());
-// 1. prepare sandbox
-    logger().information("Environment preparation");
-    Sandbox sandbox{
-        {
-            "foo.cpp",  R"code(
-#include <iostream>
-int foo() {
-    std::cout << "int foo(){}" << std::endl;
-    return 0;
-} )code"
+    logger->info("I'm a client");
 
-        },
-        {
-            "foo.h",  R"code(
-#include <iostream>
-int main() {
-    std::cout << "Hello World" << std::endl;
-    return 0;
-} )code"
-        },
-        {
-            "main.cpp",  R"code(
-#include <iostream>
-int main() {
-    std::cout << "Hello World" << std::endl;
-    return 0;
-} )code"
-        }};
+    if (config.count("compilers.clang.path") == 0) {
+        return;
+    }
 
-// 2. compile
-    if (compiler.compile(sandbox)) {
-        logger().information("Compilation was completed succesfully");
+    auto clangxx_path = config.at("compilers.clang.path").as<std::string>();
+    Compilers::ClangCompiler compiler{clangxx_path};
+    logger->info(compiler.getVersion());
+    auto sample = SampleData::simpleHelloWorld();
+
+    if (compiler.compile(sample)) {
+        logger->info("Compilation was completed succesfully");
     } else {
-        logger().error("Compilation failed.");
-        logger().error(compiler.getErrors());
+        logger->error("Compilation failed.");
+        logger->error(compiler.getErrors());
     }
 }
 
-int Application::main(const std::vector<std::string>& args)
+int Application::run()
 {
-    if (!helpRequested) {
-        configureLogger();
-
-        if (config().has("application.server-mode")) {
-            runServerMode();
-        } else if (config().has("application.client-mode")) {
-            runClientMode();
-        }
+    if (config.count("help")) {
+        std::cout << options_description;
+    } else if (config.count("server-mode")) {
+        runServerMode();
+    } else if (config.count("client-mode")) {
+        runClientMode();
     }
 
-    return EXIT_OK;
+    return static_cast<int>(ExitCode::OK);
 }
 } // namespace Sphinx

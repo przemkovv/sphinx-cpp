@@ -5,11 +5,10 @@
 #include <vector>
 #include <map>
 
-#include <Poco/Logger.h>
-#include <Poco/Path.h>
-#include <Poco/File.h>
+#include <boost/filesystem.hpp>
 
 #include "File.h"
+#include "Logger.h"
 
 namespace Sphinx {
 
@@ -24,9 +23,9 @@ class Sandbox {
         template<class C>
         void addFiles(const C& files);
 
-        void copyFile(Poco::Path source, FileType file_type);
+        void copyFile(boost::filesystem::path source, FileType file_type);
 
-        Poco::Path getProjectRootPath() { return project_root_path; }
+        boost::filesystem::path getProjectRootPath() { return project_root_path; }
 
         const char *name() const { return "Sphinx::Sandbox"; }
 
@@ -35,13 +34,14 @@ class Sandbox {
     protected:
     private:
         /* data */
-        Poco::Path project_root_path;
-        Poco::Path project_src_path;
+        boost::filesystem::path project_root_path;
+        boost::filesystem::path project_src_path;
         std::vector<File> files;
-        Poco::Logger& logger;
+        Logger logger;
 
-        void addFile(File file, Poco::Path destination);
-        Poco::Path getDestinationPath(FileType file_type);
+        void addFile(File file, boost::filesystem::path destination);
+        boost::filesystem::path getDestinationPath(FileType file_type);
+
 
 };
 }

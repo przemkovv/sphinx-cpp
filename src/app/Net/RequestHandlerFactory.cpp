@@ -3,7 +3,7 @@
 
 namespace Sphinx {
 
-RequestHandlerFactory::RequestHandlerFactory() : logger(Poco::Logger::get(name()))
+RequestHandlerFactory::RequestHandlerFactory() : logger(make_logger(name()))
 {
 }
 
@@ -26,10 +26,10 @@ Poco::Net::HTTPRequestHandler *RequestHandlerFactory::createRequestHandler(const
     auto request_handler_it = request_handlers.find(request.getURI());
 
     if (request_handler_it != request_handlers.end()) {
-        logger.information("Handling requested URI \"" + request.getURI() + "\" from " + request.clientAddress().toString());
+        logger->info("Handling requested URI \"" + request.getURI() + "\" from " + request.clientAddress().toString());
         return request_handler_it->second();
     } else {
-        logger.information("No  \"" + request.getURI() + "\" URI handler. Requested from "+ request.clientAddress().toString());
+        logger->info("No  \"" + request.getURI() + "\" URI handler. Requested from "+ request.clientAddress().toString());
         return nullptr;
     }
 }

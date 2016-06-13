@@ -3,7 +3,6 @@
 
 
 #include <string>
-#include <Poco/Logger.h>
 #include "Sphinx/File.h"
 #include "Compiler.h"
 
@@ -25,7 +24,7 @@ class ClangParser : public Compiler {
 
 
     private:
-        Poco::Logger& logger;
+        std::shared_ptr<spdlog::logger> logger;
 };
 }
 }

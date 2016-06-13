@@ -2,7 +2,7 @@
 #pragma once
 #include <string>
 #include <map>
-#include <Poco/Path.h>
+#include <boost/filesystem.hpp>
 
 namespace Sphinx {
 
@@ -11,20 +11,20 @@ enum class FileType  {
 };
 
 const std::map <std::string, FileType> extensionFileType  {
-    {"cpp", FileType::Source},
-    {"c", FileType::Source},
-    {"cc", FileType::Source},
-    {"hpp", FileType::Header},
-    {"h", FileType::Header}};
+    {".cpp", FileType::Source},
+    {".c", FileType::Source},
+    {".cc", FileType::Source},
+    {".hpp", FileType::Header},
+    {".h", FileType::Header}};
 
 
 struct File {
     /* data */
     std::string name;
     std::string content;
-    FileType file_type;
+    boost::filesystem::path full_path;
 
-    Poco::Path full_path;
+    FileType file_type;
 
     File(std::string name, std::string content);
     File(std::string name, std::string content, FileType file_type);

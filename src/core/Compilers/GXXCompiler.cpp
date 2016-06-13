@@ -10,7 +10,7 @@ namespace Compilers {
 
 GXXCompiler::GXXCompiler(std::string executable_path)
     : Compiler(executable_path),
-      logger(Poco::Logger::get(name()))
+      logger(make_logger(name()))
 {
 }
 
@@ -29,12 +29,12 @@ std::string GXXCompiler::getVersion()
 
 bool GXXCompiler::compile(File file)
 {
-    logger.information("Compiling file: " + file.name);
+    logger->info("Compiling file: " + file.name);
     return true;
 }
 bool GXXCompiler::compile(Sandbox sandbox)
 {
-    logger.information("Compiling files: ");
+    logger->info("Compiling files: {} ", sandbox.name());
     return true;
 }
 } // namespace Compilers
