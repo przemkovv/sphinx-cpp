@@ -35,11 +35,15 @@ class Sandbox {
         /* data */
         boost::filesystem::path project_root_path;
         boost::filesystem::path project_src_path;
+        boost::filesystem::path project_bin_path;
         std::vector<File> files;
+        boost::filesystem::path output_executable_path;
+
         Logger logger;
 
         void addFile(File file, boost::filesystem::path destination);
         boost::filesystem::path getDestinationPath(FileType file_type);
+        void createDirectory(const boost::filesystem::path &path);
 
 
 };

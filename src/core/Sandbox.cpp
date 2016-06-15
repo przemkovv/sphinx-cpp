@@ -14,20 +14,23 @@ namespace fs = boost::filesystem;
 Sandbox::Sandbox(): logger(make_logger(name()))
 {
     using namespace std::string_literals;
+
     project_root_path = fs::unique_path(fs::temp_directory_path() / "sphinx"s / "%%%%%%%"s);
-    fs::create_directories(project_root_path);
-    logger->info("Creating temporary dir: {}", project_root_path.string());
-
-    if (!fs::exists(project_root_path)) {
-        throw std::invalid_argument(fmt::format("Cannot create directory: {} ", project_root_path.string()));
-    }
-
-    logger->info("Creating temporary dir: {}", project_src_path.string());
+    create_directory(project_root_path);
+    
     project_src_path = project_root_path / "src"s;
-    fs::create_directories(project_src_path);
+    create_directory(project_src_path);
 
-    if (!exists(project_src_path)) {
-        throw std::invalid_argument(fmt::format("Cannot create directory: {}", project_src_path.string()));
+    project_bin_path = project_root_path / "bin"s;
+    create_directory(project_bin_path);
+}
+
+void Sandbox::createDirectory(const fs::path &path) {
+    logger->info("Creating temporary dir: {}", path.string());
+    fs::create_directories(path);
+
+    if (!exists(path)) {
+        throw std::invalid_argument(fmt::format("Cannot create directory: {}", path.string()));
     }
 }
 
