@@ -27,6 +27,7 @@ class Sandbox {
         void copyFile(boost::filesystem::path source, FileType file_type);
 
         boost::filesystem::path getProjectRootPath() { return project_root_path; }
+        boost::filesystem::path getProjectExecutablePath() { return output_executable_path; }
 
         const char *name() const { return "Sphinx::Sandbox"; }
 

@@ -24,6 +24,8 @@ Sandbox::Sandbox(): logger(make_logger(name()))
 
     project_bin_path = project_root_path / "bin"s;
     create_directory(project_bin_path);
+
+    output_executable_path = project_bin_path / "run"s;
 }
 
 void Sandbox::createDirectory(const fs::path &path) {

@@ -47,6 +47,7 @@ bool ClangCompiler::compile(Sandbox sandbox)
     }
     auto compiler_args = CXXFlags;
     compiler_args.insert(compiler_args.end(), source_files.begin(), source_files.end());
+    compiler_args.emplace_back(fmt::format("-o{}", sandbox.getProjectExecutablePath().string()));
 
     result = run(compiler_args, sandbox.getProjectRootPath().string());
     return result.exit_code == static_cast<int>(Sphinx::ExitCode::OK);
