@@ -14,8 +14,8 @@
 namespace Sphinx {
 namespace Compilers {
 
-ClangCompiler::ClangCompiler(std::string executable_path)
-    : Compiler(executable_path), logger(make_logger(name()))
+ClangCompiler::ClangCompiler(std::string executable_path, const std::vector<std::string> &flags)
+    : Compiler(executable_path), CXXFlags(flags), logger(make_logger(name()))
     //: Compiler(executable_path), logger(Poco::Logger::get(name()))
 {
 }

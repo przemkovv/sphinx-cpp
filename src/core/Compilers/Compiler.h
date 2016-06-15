@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 
+#include "Logger.h"
 #include "File.h"
 #include "Sandbox.h"
 
@@ -26,6 +27,8 @@ class Compiler {
 
         std::string output_filepath;
 
+        virtual Logger& getLogger() = 0;
+
     public:
         std::string getOutputFilePath() const { return output_filepath; }
         virtual std::string getVersion() = 0;
@@ -39,6 +42,7 @@ class Compiler {
         virtual const char *name() { return "Sphinx::Compilers::Compiler"; }
 
         virtual ~Compiler() { }
+
         
 };
 

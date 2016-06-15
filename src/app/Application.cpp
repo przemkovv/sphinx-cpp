@@ -43,8 +43,8 @@ po::options_description Application::prepare_options_description()
     ("log_level", po::value<int>()->default_value(spdlog::level::info), "Logging level")
     ("config", po::value<std::vector<std::string>>(), "Configuration file");
     desc.add_options()
-    ("compilers.clang++.flags", "Flags for the clang compiler.")
-    ("compilers.clang++.path", "Path for the clang++ executable.");
+    ("compilers.clang++.flags", po::value<std::vector<std::string>>(), "Flags for the clang compiler.")
+    ("compilers.clang++.path", po::value<std::string>(), "Path for the clang++ executable.");
     return desc;
 }
 
@@ -90,12 +90,14 @@ void Application::runClientMode()
 {
     logger->info("I'm a client");
 
-    if (config.count("compilers.clang.path") == 0) {
+    if (config.count("compilers.clang++.path") == 0) {
         return;
     }
 
-    auto clangxx_path = config.at("compilers.clang.path").as<std::string>();
-    Compilers::ClangCompiler compiler{clangxx_path};
+    auto clangxx_path = config.at("compilers.clang++.path").as<std::string>();
+    auto clangxx_flags = config.at("compilers.clang++.flags").as<std::vector<std::string>>();
+    logger->debug("Clang++ flags: {}", clangxx_flags);
+    Compilers::ClangCompiler compiler{clangxx_path, clangxx_flags};
     logger->info(compiler.getVersion());
     auto sample = SampleData::simpleHelloWorld();
 

@@ -18,7 +18,7 @@ class ClangCompiler : public Compiler {
             "-std=c++14", "-Wall", "-Werror"
         };
             
-        ClangCompiler(std::string executable_path);
+        ClangCompiler(std::string executable_path, const std::vector<std::string> &flags);
         std::string getVersion() override;
 
         bool compile(File file) override;
@@ -32,7 +32,9 @@ class ClangCompiler : public Compiler {
 
     private:
         CompilerOutput result;
+
         Logger logger;
+        virtual Logger& getLogger() override { return logger; }
 };
 }
 }
