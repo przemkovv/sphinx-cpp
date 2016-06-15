@@ -101,13 +101,17 @@ void Application::runClientMode()
     logger->debug("Clang++ flags: {}", clangxx_flags);
     Compilers::ClangCompiler compiler{clangxx_path, clangxx_flags};
     logger->info(compiler.getVersion());
-    auto sample = SampleData::simpleHelloWorld();
+    std::vector<Sandbox> samples{SampleData::simpleHelloWorld(), SampleData::simpleHelloWorldCompileError()};
 
-    if (compiler.compile(sample)) {
-        logger->info("Compilation was completed succesfully");
-    } else {
-        logger->error("Compilation failed.");
-        logger->error(compiler.getErrors());
+    for (auto& sample : samples) {
+        logger->info("------------------------- SAMPLE -------------------------");
+        if (compiler.compile(sample)) {
+            logger->info("Compilation was completed succesfully");
+        } else {
+            logger->error("Compilation failed.");
+            logger->error(compiler.getErrors());
+        }
+        logger->info("----------------------------------------------------------");
     }
 }
 
