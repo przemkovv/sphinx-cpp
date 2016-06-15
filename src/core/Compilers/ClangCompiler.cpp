@@ -1,6 +1,8 @@
 
 #include "ClangCompiler.h"
 
+#include "utils.h"
+
 #include <Poco/Process.h>
 #include <Poco/StreamCopier.h>
 #include <Poco/PipeStream.h>
@@ -8,7 +10,6 @@
 #include <range/v3/view/remove_if.hpp>
 #include <range/v3/view/transform.hpp>
 
-#include "utils.h"
 
 
 namespace Sphinx {

@@ -1,7 +1,6 @@
 
 #include "utils.h"
 
-
 #include <Poco/StreamCopier.h>
 
 namespace Sphinx {

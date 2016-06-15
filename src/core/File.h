@@ -1,8 +1,9 @@
 
 #pragma once
+#include <boost/filesystem.hpp>
+
 #include <string>
 #include <map>
-#include <boost/filesystem.hpp>
 
 namespace Sphinx {
 

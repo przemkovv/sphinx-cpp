@@ -1,9 +1,10 @@
 
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 #include <string>
-#include <spdlog/spdlog.h>
 
 namespace Sphinx {
 

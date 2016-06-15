@@ -1,10 +1,8 @@
 #pragma once
 
-#include <string>
-
-#include <boost/program_options.hpp>
-
 #include "Logger.h"
+#include <boost/program_options.hpp>
+#include <string>
 
 
 namespace Sphinx {

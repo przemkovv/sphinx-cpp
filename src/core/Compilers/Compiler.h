@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include <string>
-#include <tuple>
-#include <vector>
-
 #include "Logger.h"
 #include "File.h"
 #include "Sandbox.h"
+
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace Sphinx {
 namespace Compilers {

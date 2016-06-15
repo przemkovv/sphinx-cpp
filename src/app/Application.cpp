@@ -1,19 +1,21 @@
 
-#include <memory>
-#include <thread>
-#include <chrono>
-#include <iostream>
-
-
-#include "utils.h"
-#include "Net/Server.h"
-#include "Compilers/MakeCompiler.h"
-#include "Compilers/ClangCompiler.h"
-
 #include "Application.h"
+#include "utils.h"
+
 #include "File.h"
 #include "Sandbox.h"
 #include "SampleData.h"
+
+#include "Compilers/MakeCompiler.h"
+#include "Compilers/ClangCompiler.h"
+
+#include "Net/Server.h"
+
+#include <iostream>
+
+#include <memory>
+#include <thread>
+#include <chrono>
 
 
 namespace Sphinx {

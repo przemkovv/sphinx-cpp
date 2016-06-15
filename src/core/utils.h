@@ -1,12 +1,13 @@
 
 #pragma once
 
-#include <string>
-#include <iostream>
+#include "pprint.hpp"
+
 #include <boost/program_options.hpp>
 #include <Poco/PipeStream.h>
 
-#include "pprint.hpp"
+#include <iostream>
+#include <string>
 
 namespace Sphinx {
 

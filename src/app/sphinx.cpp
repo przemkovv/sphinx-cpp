@@ -1,9 +1,11 @@
 
+#include "Application.h"
+
+#include <Poco/Util/OptionException.h>
+
 #include <stdexcept>
 #include <iostream>
 
-#include <Poco/Util/OptionException.h>
-#include "Application.h"
 
 int main(int argc, char *argv[])
 {

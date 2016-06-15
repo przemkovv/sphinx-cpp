@@ -1,14 +1,16 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-#include <map>
+#include "File.h"
+#include "Logger.h"
 
 #include <boost/filesystem.hpp>
 
-#include "File.h"
-#include "Logger.h"
+#include <map>
+#include <string>
+#include <vector>
+
+
 
 namespace Sphinx {
 

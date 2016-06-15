@@ -1,10 +1,11 @@
 
 #include "Compiler.h"
+#include "utils.h"
+
 #include <fmt/format.h>
 #include <Poco/Pipe.h>
 #include <Poco/Process.h>
 
-#include "utils.h"
 
 namespace Sphinx {
 namespace Compilers {
