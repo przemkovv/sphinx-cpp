@@ -28,6 +28,7 @@ find_package(Boost 1.60 COMPONENTS filesystem program_options)
 add_subdirectory(src/core)
 #add_subdirectory(src/net)
 add_subdirectory(src/app)
+add_subdirectory(src/docker)
 #add_subdirectory(src/tests)
 
 
