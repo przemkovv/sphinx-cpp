@@ -1,6 +1,5 @@
 
 #include "RESTClient.h"
-#include "UnixSocketConnection.h"
 
 #include "Logger.h"
 
