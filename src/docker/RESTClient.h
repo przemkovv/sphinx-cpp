@@ -4,6 +4,8 @@
 #include "IOConnection.h"
 
 #include "Logger.h"
+#include <fmt/format.h>
+
 #include <boost/asio.hpp>
 #include <string>
 
@@ -14,12 +16,14 @@ template <typename T = TCPSocket>
 class RESTClient : protected IOConnection<T> {
         using IOConnection<T>::send;
         using IOConnection<T>::receive;
+        using IOConnection<T>::reconnect;
 
     public:
         using IOConnection<T>::IOConnection;
 
         std::string get(const std::string& path)
         {
+            reconnect();
             auto request = fmt::format("GET {0} HTTP/1.1\r\n"
                                        "Host: localhost\r\n"
                                        "Accept: */*\r\n"

@@ -1,5 +1,5 @@
 
-#include "RESTClient.h"
+#include "DockerClient.h"
 
 #include "Logger.h"
 
@@ -13,17 +13,11 @@ int main()
     logger->info("Hello");
 
     try {
-        Sphinx::Docker::RESTClient<Sphinx::Docker::TCPSocket> connection {"127.0.0.1", 2375};
-        auto response = connection.get("/info");
-        logger->info("Response received:\n{} ", response);
-    } catch (std::exception& ex) {
-        logger->error("{}", ex.what());
-    }
-
-    try {
-        Sphinx::Docker::RESTClient<Sphinx::Docker::UnixSocket> connection {"/var/run/docker.sock"};
-        auto response = connection.get("/info");
-        logger->info("Response received:\n{} ", response);
+        {
+            auto docker = Sphinx::Docker::make_docker_client("/var/run/docker.sock");
+            logger->info("Containers:\n{} ", docker.getContainers());
+            logger->info("Info:\n{} ", docker.getInfo());
+        }
     } catch (std::exception& ex) {
         logger->error("{}", ex.what());
     }
