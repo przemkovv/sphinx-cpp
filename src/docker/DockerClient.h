@@ -46,15 +46,13 @@ class DockerClient : protected RESTClient<T> {
 
 };
 
-inline
-auto make_docker_client(const std::string& address, unsigned short port)
-{
-    return DockerClient<TCPSocket> {address, port};
+inline 
+DockerClient<TCPSocket> make_docker_client(const std::string &address, unsigned short port) {
+    return DockerClient<TCPSocket>(address, port);
 }
-inline
-auto make_docker_client(const std::string& socket_path)
-{
-    return DockerClient<UnixSocket> {socket_path};
+inline 
+DockerClient<UnixSocket> make_docker_client(const std::string &socket_path) {
+    return DockerClient<UnixSocket>(socket_path);
 }
 
 
