@@ -21,7 +21,7 @@ class RESTClient : protected IOConnection<T> {
     public:
         using IOConnection<T>::IOConnection;
 
-        std::string get(const std::string& path)
+        auto get(const std::string& path)
         {
             reconnect();
             auto request = fmt::format("GET {0} HTTP/1.1\r\n"
@@ -33,8 +33,12 @@ class RESTClient : protected IOConnection<T> {
             logger->debug("HTTP Request:\n{}", request);
             send(request);
             auto response = receive();
-            logger->debug("HTTP Response:\n{}", response);
-            return response;
+            auto header_end = response.find("\r\n\r\n");
+            auto header = response.substr(0, header_end);
+            auto response_data = response.substr(header_end+4);
+            logger->debug("HTTP Response header:\n{}", header);
+            logger->debug("HTTP Response:\n{}", response_data);
+            return std::make_pair(header, response_data);
         }
 
     private:

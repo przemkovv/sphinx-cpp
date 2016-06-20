@@ -15,8 +15,8 @@ int main()
     try {
         {
             auto docker = Sphinx::Docker::make_docker_client("/var/run/docker.sock");
-            logger->info("Containers:\n{} ", docker.getContainers());
             logger->info("Info:\n{} ", docker.getInfo());
+            logger->info("Containers:\n{} ", docker.getContainers());
         }
     } catch (std::exception& ex) {
         logger->error("{}", ex.what());
