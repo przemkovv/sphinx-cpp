@@ -1,0 +1,43 @@
+# $Id$
+# Maintainer: Anatol Pomozov
+# Contributor: Zhuoyun Wei <wzyboy@wzyboy.org>
+
+pkgname=nghttp2-git
+pkgver=1.11.1
+pkgrel=1
+pkgdesc='Framing layer of HTTP/2 is implemented as a reusable C library'
+arch=(i686 x86_64)
+url='https://nghttp2.org/'
+license=(MIT)
+depends=(openssl libev zlib libxml2 jansson jemalloc)
+source=("${pkgname}::git+https://github.com/nghttp2/nghttp2.git")
+backup=(
+  etc/nghttpx/nghttpx.conf
+  etc/logrotate.d/nghttpx
+)
+sha256sums=('SKIP')
+
+build() {
+  cd $pkgname
+
+  autoreconf -i
+  ./configure \
+    --prefix=/usr \
+    --disable-examples \
+    --disable-python-bindings \
+    --with-boost-asio \
+    --enable-asio-lib
+
+  make
+}
+
+check() {
+  cd $pkgname
+  make check
+}
+
+package() {
+  cd $pkgname
+
+  make DESTDIR="$pkgdir" install
+}
