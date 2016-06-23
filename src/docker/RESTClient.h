@@ -5,6 +5,7 @@
 
 #include "Logger.h"
 #include <fmt/format.h>
+#include "pprint.hpp"
 
 #include <boost/asio.hpp>
 #include <string>
@@ -66,12 +67,13 @@ enum class HTTPMethod {
     GET
 };
 
+using HTTPHeaders = std::map<std::string, std::string>;
 struct HTTPResponse;
 
 class HTTPRequest {
         HTTPMethod method;
         std::string uri;
-        std::map<std::string, std::string> headers;
+        HTTPHeaders headers;
         std::string data;
 
         void addDefaultHeaders()
@@ -96,14 +98,6 @@ class HTTPRequest {
             addHeader("Content-Type", "application/json");
         }
 
-        //auto request = fmt::format("POST {0} HTTP/1.1\r\n"
-        //"Host: localhost\r\n"
-        //"Accept: */*\r\n"
-        //"Connection: close\r\n"
-        //"Content-Length: {2}\r\n"
-        //"Content-Type: application/json\r\n"
-        //"\r\n"
-        //"{1}",
         template <typename T>
         void addHeader(const std::string& name, const T& value)
         {
@@ -145,31 +139,47 @@ class HTTPRequest {
 
 struct HTTPResponse {
     http_status status;
-    std::string headers;
+    HTTPHeaders headers;
     std::string data;
 
     HTTPRequest request;
 
-    HTTPResponse(std::string headers, std::string data):headers(headers), data(data)
+    HTTPResponse(std::string headers, std::string data):headers(parse_headers(headers)), data(data)
     {
-        auto logger =make_logger("HTTPResponse");
         std::regex status_regex("^HTTP/\\d\\.\\d (\\d{3}) .+");
         std::smatch sm;
 
         if (std::regex_search(headers, sm, status_regex)) {
             status = static_cast<http_status>(std::stoi(sm[1]));
-        } else {
-            logger->error("Didn't find the status code.");
         }
     }
 
-    std::string to_string() const 
+    HTTPHeaders parse_headers(std::string headers_str)
+    {
+        HTTPHeaders headers;
+        std::regex header_regex("(.+): (.+)\r\n");
+        std::smatch sm;
+
+        while (std::regex_search(headers_str, sm, header_regex)) {
+            headers.insert({sm[1], sm[2]});
+            headers_str = sm.suffix();
+        }
+
+        return headers;
+    }
+
+    std::string to_string() const
     {
         fmt::MemoryWriter w;
-        w.write("Request: {0}", request.to_string());
-        w.write("Response status: {0}", static_cast<int>(status));
-        w.write("Response headers: {0}", headers);
-        w.write("Response data: {0}", data);
+        w.write("Request: {0}\n", request.to_string());
+        w.write("Response status: {0}\n", static_cast<int>(status));
+        w.write("Response headers: \n");
+
+        for (auto header : headers) {
+            w.write("{0}: {1}\r\n", header.first, header.second);
+        }
+
+        w.write("Response data: {0}\n", data);
         return  w.str();
     }
 };
@@ -187,17 +197,17 @@ class RESTClient : protected IOConnection<T> {
         {
             auto response = receive();
             auto header_end = response.find("\r\n\r\n");
-            auto header = response.substr(0, header_end);
+            auto header = response.substr(0, header_end+2);
             auto response_data = response.substr(header_end+4);
 
             if (is_chunked(header)) {
                 response_data = extract_chunk_data(response_data);
             }
 
-            logger->debug("HTTP Response header:\n{}", header);
-            logger->debug("HTTP Response:\n{}", response_data);
             auto http_response = HTTPResponse {header, response_data};
-            logger->debug("Status code: {0}", static_cast<int>(http_response.status));
+            logger->debug("HTTP Status code: {0}", static_cast<int>(http_response.status));
+            logger->debug("HTTP Response headers:\n{}", http_response.headers);
+            logger->debug("HTTP Response:\n{}", http_response.data);
             return http_response;
         }
 
