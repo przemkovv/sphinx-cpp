@@ -86,16 +86,19 @@ class HTTPRequest {
     protected:
         HTTPRequest() {}
     public:
-        HTTPRequest(HTTPMethod method, const std::string& uri) :  method(method), uri(uri)
+        HTTPRequest(HTTPMethod method, const std::string& uri, const HTTPHeaders &additional_headers = {}) 
+            :  method(method), uri(uri)
         {
             addDefaultHeaders();
+            headers.insert(additional_headers.begin(), additional_headers.end());
         }
-        HTTPRequest(HTTPMethod method, const std::string& uri, const std::string& data)
+        HTTPRequest(HTTPMethod method, const std::string& uri, const std::string& data, const HTTPHeaders &additional_headers = {})
             : method(method), uri(uri), data(data)
         {
             addDefaultHeaders();
             addHeader("Content-Length", data.size());
             addHeader("Content-Type", "application/json");
+            headers.insert(additional_headers.begin(), additional_headers.end());
         }
 
         template <typename T>
@@ -144,7 +147,8 @@ struct HTTPResponse {
 
     HTTPRequest request;
 
-    HTTPResponse(std::string headers, std::string data):headers(parse_headers(headers)), data(data)
+    HTTPResponse(std::string headers, std::string data)
+        : headers(parse_headers(headers)), data(data)
     {
         std::regex status_regex("^HTTP/\\d\\.\\d (\\d{3}) .+");
         std::smatch sm;
@@ -211,10 +215,10 @@ class RESTClient : protected IOConnection<T> {
             return http_response;
         }
 
-        auto post(const std::string& path)
+        auto post(const std::string& path, const HTTPHeaders &headers = {})
         {
             reconnect();
-            auto  request = HTTPRequest {HTTPMethod::POST, path};
+            auto  request = HTTPRequest {HTTPMethod::POST, path, headers};
             logger->debug("HTTP Request:\n{}", request.to_string());
             send(request.to_string());
             auto response = receive_response();

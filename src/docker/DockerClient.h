@@ -89,7 +89,7 @@ class DockerClient : protected RESTClient<T> {
             return j1.dump(4);
         }
 
-        auto createContainer(const std::string& image_name, const std::string& command)
+        auto createContainer(const std::string& image_name, const std::vector<std::string>& commands)
         {
             json container = {
                 {"Hostname",""},
@@ -102,7 +102,7 @@ class DockerClient : protected RESTClient<T> {
                 {"Tty",false},
                 {"OpenStdin",false},
                 {"StdinOnce",false},
-                {"Cmd", {command}},
+                {"Cmd", commands},
                 {"Image",image_name},
                 {"WorkingDir","",}
             };
@@ -149,8 +149,8 @@ class DockerClient : protected RESTClient<T> {
 
         void attachContainer(const Container& container) 
         {
-            auto request = fmt::format("/containers/{0}/attach", container.id);
-            auto response = post(request);
+            auto request = fmt::format("/containers/{0}/attach?stream=0&logs=1&stdout=1&stderr=1", container.id);
+            auto response = post(request, {{"Upgrade", "tcp"}});
 
             logger->info("Attach container: {0}", response.to_string());
 
@@ -159,7 +159,9 @@ class DockerClient : protected RESTClient<T> {
 
         void run()
         {
-            auto container = createContainer(image_name, "date");
+            //auto container = createContainer(image_name, {"/bin/zsh", "-c", "'I=1 && repeat 100  echo $((I++)) && sleep 1'"});
+
+            auto container = createContainer(image_name, {"date"});
             startContainer(container);
             attachContainer(container);
             //1. Create the container
