@@ -10,6 +10,9 @@ int main()
 {
     spdlog::set_level(spdlog::level::debug);
     auto logger = Sphinx::make_logger("docker");
+    Sphinx::make_logger("HTTPClient", spdlog::level::warn);
+    Sphinx::make_logger("DockerClient", spdlog::level::debug);
+
     logger->info("Hello");
 
     try {
