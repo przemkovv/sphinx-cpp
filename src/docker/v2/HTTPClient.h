@@ -32,7 +32,7 @@ private:
   using Socket = T;
   using std::enable_shared_from_this<HTTPClient<T>>::shared_from_this;
   boost::asio::io_service &io_service_;
-  std::shared_ptr<Socket> socket_;
+  Socket socket_;
 
   typename Endpoint<T>::type endpoint_;
 
@@ -46,9 +46,10 @@ public:
              const std::string &address,
              unsigned short port)
     : io_service_(io_service),
-      socket_(std::make_shared<Socket>(io_service_)),
+      socket_(io_service_),
       endpoint_(boost::asio::ip::address::from_string(address), port)
   {
+    logger->trace("HTTPClient<TCPSocket>::HTTPClient: enter and exit");
   }
 
   template <typename U = Socket,
@@ -56,29 +57,40 @@ public:
   HTTPClient(boost::asio::io_service &io_service,
              const std::string &socket_path)
     : io_service_(io_service),
-      socket_(std::make_shared<Socket>(io_service_)),
+      socket_(io_service_),
       endpoint_(socket_path)
   {
+    logger->trace("HTTPClient<UnixSocket>::HTTPClient: enter and exit");
   }
 
-  auto get(const std::string &path) {
+  auto get(const std::string &path)
+  {
+    logger->trace("HTTPClient::get: enter");
 
     auto self = shared_from_this();
-    boost::asio::async_connect(
-        socket_, endpoint_,
-        [this, path, self](boost::system::error_code error_code, std::size_t) {
-          handle_connect(error_code, path);
+    socket_.async_connect(
+        endpoint_,
+        [this, path, self](const boost::system::error_code &error_code) {
+          self->handle_connect(error_code, path);
 
         });
 
+    io_service_.run();
+    logger->trace("HTTPClient::get: exit");
     return "";
   }
 
 private:
-  void handle_connect(const boost::system::error_code /*error_code*/,
-                      const std::string &path)
+  void handle_connect(const boost::system::error_code &error_code,
+                      const std::string & /*path*/)
   {
-    logger->info("{}", path);
+    logger->trace("HTTPClient::handle_connect: enter");
+    if (error_code) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      logger->trace("HTTPClient::handle_connect: exit with error");
+      return;
+    }
+    logger->trace("HTTPClient::handle_connect: exit");
   }
 
 private:
