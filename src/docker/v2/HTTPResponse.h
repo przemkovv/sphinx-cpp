@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "Logger.h"
+
 #include "HTTPCommon.h"
 #include "HTTPHeaders.h"
 #include <fmt/format.h>
@@ -15,34 +17,51 @@ namespace v2 {
 
 class HTTPResponse {
 private:
+  std::string http_version_;
   HTTPStatus status_;
+  std::string status_message_;
   HTTPHeaders headers_;
   std::string data_;
 
-  HTTPResponse(std::string headers, std::string data)
-    : headers_(headers), data_(data)
+public:
+  void parse_status_line(const std::string &status_line)
   {
-    std::regex status_regex("^HTTP/\\d\\.\\d (\\d{3}) .+");
+
+    std::regex status_regex("^(HTTP/\\d\\.\\d) (\\d{3}) (.+)");
     std::smatch sm;
 
-    if (std::regex_search(headers, sm, status_regex)) {
-      status_ = static_cast<HTTPStatus>(std::stoi(sm[1]));
+    if (std::regex_search(status_line, sm, status_regex)) {
+      http_version_ = sm[1];
+      status_ = static_cast<HTTPStatus>(std::stoi(sm[2]));
+      status_message_ = sm[3];
     }
+  }
+  void parse_headers(const std::string &headers)
+  {
+    headers_.add_headers(headers);
   }
 
   std::string to_string() const
   {
     fmt::MemoryWriter w;
-    w.write("Response status: {0}\n", static_cast<int>(status_));
-    w.write("Response headers: \n");
+    w.write("Statusline: {0} {1} {2}\n", http_version_,
+            static_cast<int>(status_), status_message_);
+    w.write("Headers: \n");
 
     for (auto header : headers_) {
       w.write("{0}: {1}\r\n", header.first, header.second);
     }
 
-    w.write("Response data: {0}\n", data_);
+    w.write("Data: {0}\n", data_);
     return w.str();
   }
+
+  template <typename T> void append_data(const T &data)
+  {
+    data_.append(std::begin(data), std::end(data));
+  }
+
+  const HTTPHeaders &headers() { return headers_; }
 };
 
 } // namespace v2

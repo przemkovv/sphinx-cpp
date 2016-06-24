@@ -12,8 +12,6 @@ namespace Sphinx {
 namespace Docker {
 namespace v2 {
 
-struct HTTPResponse;
-
 class HTTPRequest {
   HTTPMethod method_;
   std::string uri_;
@@ -28,6 +26,8 @@ class HTTPRequest {
   }
 
 public:
+  HTTPRequest() : HTTPRequest(HTTPMethod::GET, "/") {}
+
   HTTPRequest(HTTPMethod method,
               const std::string &uri,
               const HTTPHeaders &additional_headers = {})
@@ -73,7 +73,6 @@ public:
 
     return w.str();
   }
-
 };
 
 } // namespace v2

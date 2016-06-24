@@ -16,9 +16,9 @@ class HTTPHeaders : public std::map<std::string, std::string> {
 public:
   using std::map<std::string, std::string>::map;
 
-  HTTPHeaders() : std::map<std::string, std::string>::map() {}
+  //HTTPHeaders() : std::map<std::string, std::string>::map() {}
 
-  HTTPHeaders(const std::string &headers) { add_headers(headers); }
+  //HTTPHeaders(const std::string &headers) { add_headers(headers); }
 
   HTTPHeaders &add_headers(std::string headers)
   {

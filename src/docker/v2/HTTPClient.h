@@ -3,11 +3,16 @@
 
 #include "Logger.h"
 
+#include "HTTPRequest.h"
+#include "HTTPResponse.h"
+
 #include <boost/asio.hpp>
 #include <string>
 
 #include <memory>
 #include <type_traits>
+
+#include "utils.h"
 
 namespace Sphinx {
 namespace Docker {
@@ -39,6 +44,9 @@ private:
   boost::asio::streambuf request_;
   boost::asio::streambuf response_;
 
+  HTTPRequest http_request_;
+  HTTPResponse http_response_;
+
 public:
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, TCPSocket>::value>>
@@ -49,48 +57,138 @@ public:
       socket_(io_service_),
       endpoint_(boost::asio::ip::address::from_string(address), port)
   {
-    logger->trace("HTTPClient<TCPSocket>::HTTPClient: enter and exit");
   }
 
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, UnixSocket>::value>>
   HTTPClient(boost::asio::io_service &io_service,
              const std::string &socket_path)
-    : io_service_(io_service),
-      socket_(io_service_),
-      endpoint_(socket_path)
+    : io_service_(io_service), socket_(io_service_), endpoint_(socket_path)
   {
-    logger->trace("HTTPClient<UnixSocket>::HTTPClient: enter and exit");
   }
 
   auto get(const std::string &path)
   {
-    logger->trace("HTTPClient::get: enter");
+    http_request_ = HTTPRequest{HTTPMethod::GET, path};
+
+    std::ostream request_stream(&request_);
+    request_stream << http_request_.to_string();
 
     auto self = shared_from_this();
-    socket_.async_connect(
-        endpoint_,
-        [this, path, self](const boost::system::error_code &error_code) {
-          self->handle_connect(error_code, path);
+    socket_.async_connect(endpoint_, [this, path, self](auto &error_code) {
+      self->handle_connect(error_code);
 
-        });
+    });
 
-    io_service_.run();
-    logger->trace("HTTPClient::get: exit");
-    return "";
+    io_service_.run(); // TODO: should this be here? or maybe try to make local
+                       // io_service?
+    return http_response_;
   }
 
 private:
-  void handle_connect(const boost::system::error_code &error_code,
-                      const std::string & /*path*/)
+  void handle_connect(const boost::system::error_code &error_code)
   {
-    logger->trace("HTTPClient::handle_connect: enter");
     if (error_code) {
       logger->error("{0}: {1}", error_code.value(), error_code.message());
-      logger->trace("HTTPClient::handle_connect: exit with error");
       return;
     }
-    logger->trace("HTTPClient::handle_connect: exit");
+
+    auto self = shared_from_this();
+    boost::asio::async_write(socket_, request_,
+                             [this, self](auto &error_code, auto length) {
+                               self->handle_write_request(error_code, length);
+
+                             });
+  }
+
+  void handle_write_request(const boost::system::error_code &error_code,
+                            std::size_t /*length*/)
+  {
+    if (error_code) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+
+    auto self = shared_from_this();
+    boost::asio::async_read_until(socket_, response_, "\r\n",
+                                  [this, self](auto &error_code, auto length) {
+                                    self->handle_read_status_line(error_code,
+                                                                  length);
+
+                                  });
+  }
+
+  void handle_read_status_line(const boost::system::error_code &error_code,
+                               std::size_t /*length*/)
+  {
+    if (error_code) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+
+    http_response_ = HTTPResponse{};
+    std::istream response_stream(&response_);
+    std::string line;
+    std::getline(response_stream, line);
+    http_response_.parse_status_line(line);
+
+    auto self = shared_from_this();
+    boost::asio::async_read_until(
+        socket_, response_, "\r\n\r\n",
+        [this, self](auto &error_code, auto length) mutable {
+          self->handle_read_headers(error_code, length);
+
+        });
+  }
+
+  void handle_read_headers(const boost::system::error_code &error_code,
+                           std::size_t length)
+  {
+    if (error_code) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+    std::istream response_stream(&response_);
+    std::string headers;
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), length,
+                std::back_inserter(headers));
+    http_response_.parse_headers(headers);
+
+    auto content_length = static_cast<std::size_t>(
+        std::stoi(http_response_.headers().find("Content-Length")->second));
+
+    auto self = shared_from_this();
+    boost::asio::async_read(socket_, response_,
+                            boost::asio::transfer_at_least(content_length),
+                            [this, self](auto &error_code, auto length) {
+                              self->handle_read_content(error_code, length);
+
+                            });
+  }
+
+  void handle_read_content(const boost::system::error_code &error_code,
+                           std::size_t /*length*/)
+  {
+    bool is_eof = error_code == boost::asio::error::eof;
+
+    if (error_code && !is_eof) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+
+    std::istream response_stream(&response_);
+    http_response_.append_data(
+        std::string{std::istreambuf_iterator<char>(response_stream), {}});
+
+    if (!is_eof) {
+      auto self = shared_from_this();
+      boost::asio::async_read(socket_, response_,
+                              boost::asio::transfer_at_least(1),
+                              [this, self](auto &error_code, auto length) {
+                                self->handle_read_content(error_code, length);
+
+                              });
+    }
   }
 
 private:
