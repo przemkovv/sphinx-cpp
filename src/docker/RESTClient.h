@@ -265,7 +265,7 @@ class RESTClient : protected IOConnection<T> {
             return data.substr(0, chunk_size);
         }
 
-        Logger logger = make_logger("HTTPClient");
+        Logger logger = make_logger("RESTClient");
 };
 } // namespace Docker
 } // namespace Sphinx
