@@ -215,6 +215,16 @@ private:
     }
   }
 
+  auto is_chunked(const HTTPHeaders &headers)
+  {
+    auto transfer_encoding_header = headers.get("Transfer-Encoding");
+
+    if (transfer_encoding_header &&
+        transfer_encoding_header.value() == "chunked") {
+      return true;
+    }
+    return false;
+  }
   auto get_content_length(const HTTPHeaders &headers)
   {
     auto content_length_header = headers.get("Content-Length");
