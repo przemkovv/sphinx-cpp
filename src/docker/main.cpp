@@ -1,8 +1,8 @@
 
 #include "DockerClient.h"
-#include "v2/HTTPClient.h"
-
 #include "Logger.h"
+
+#include "v2/HTTPClient.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
@@ -28,10 +28,9 @@ int main()
 
   try {
     {
-      using namespace Sphinx::Docker::v2;
-      // boost::asio::io_service io_service;
-      auto http_client =
-          std::make_shared<HTTPClient<UnixSocket>>("/var/run/docker.sock");
+      using Sphinx::Docker::v2::make_http_client;
+      auto http_client = make_http_client("/var/run/docker.sock");
+      //auto http_client = make_http_client("127.0.0.1", 2375);
       {
         auto result = http_client->get("/info");
         logger->info("{}", result.to_string());
@@ -72,7 +71,7 @@ int main()
     {
       auto docker = Sphinx::Docker::make_docker_client("/var/run/docker.sock");
       // logger->info("Info:\n{} ", docker.getInfo());
-      // logger->info("Containers:\n{} ", docker.getContainers());
+       //logger->info("Containers:\n{} ", docker.getContainers());
       // logger->info("Containers:\n{} ", docker.getContainers());
       // docker.run();
       // logger->info("Images:\n{} ", docker.getImages());

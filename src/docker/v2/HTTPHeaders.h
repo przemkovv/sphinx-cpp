@@ -52,6 +52,13 @@ public:
     return std::experimental::optional<std::string>();
 
   }
+  HTTPHeaders &remove(const std::string &name) {
+    auto header_it = find(name);
+    if (header_it != end()) {
+      erase(header_it);
+    }
+    return *this;
+  }
 
 };
 

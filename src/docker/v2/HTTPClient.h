@@ -18,6 +18,31 @@ namespace Sphinx {
 namespace Docker {
 namespace v2 {
 
+inline std::string escape_control_characters(const std::string &input)
+{
+  std::string output;
+  for (auto currentValue : input) {
+    switch (currentValue) {
+    case L'\t':
+      output.append("\\t");
+      break;
+    case L'\\':
+      output.append("\\\\");
+      break;
+    case L'\r':
+      output.append("\\r");
+      break;
+    case L'\n':
+      output.append("\\n");
+      break;
+    //.... etc.
+    default:
+      output.push_back(currentValue);
+    }
+  }
+  return output;
+}
+
 typedef boost::asio::ip::tcp::socket TCPSocket;
 typedef boost::asio::local::stream_protocol::socket UnixSocket;
 template <typename T> struct Endpoint {
@@ -48,6 +73,9 @@ private:
   HTTPResponse http_response_;
 
   std::size_t content_data_left_;
+  std::size_t content_length_;
+  std::size_t chunk_data_left_;
+  std::size_t chunk_size_;
 
 public:
   template <typename U = Socket,
@@ -75,6 +103,9 @@ public:
     socket_ = std::make_shared<Socket>(io_service_);
 
     http_request_ = HTTPRequest{HTTPMethod::POST, path, data};
+    http_response_ = HTTPResponse{};
+    response_.consume(response_.size());
+    assert(response_.size() == 0);
 
     std::ostream request_stream(&request_);
     request_stream << http_request_.to_string();
@@ -95,6 +126,9 @@ public:
     socket_ = std::make_shared<Socket>(io_service_);
 
     http_request_ = HTTPRequest{HTTPMethod::GET, path};
+    http_response_ = HTTPResponse{};
+    response_.consume(response_.size());
+    assert(response_.size() == 0);
 
     std::ostream request_stream(&request_);
     request_stream << http_request_.to_string();
@@ -142,17 +176,14 @@ private:
   }
 
   void handle_read_status_line(const boost::system::error_code &error_code,
-                               std::size_t /*length*/)
+                               std::size_t length)
   {
     if (error_code) {
       logger->error("{0}: {1}", error_code.value(), error_code.message());
       return;
     }
 
-    http_response_ = HTTPResponse{};
-    std::istream response_stream(&response_);
-    std::string line;
-    std::getline(response_stream, line);
+    std::string line = get_n_from_response_stream(length);
     http_response_.parse_status_line(line);
 
     auto self = shared_from_this();
@@ -170,18 +201,108 @@ private:
       logger->error("{0}: {1}", error_code.value(), error_code.message());
       return;
     }
-    std::istream response_stream(&response_);
-    std::string headers;
-    std::copy_n(std::istreambuf_iterator<char>(response_stream), length,
-                std::back_inserter(headers));
+    std::string headers = get_n_from_response_stream(length);
     http_response_.parse_headers(headers);
 
-    content_data_left_ =
-        get_content_length(http_response_.headers()) - response_.size();
+    if (is_chunked(http_response_.headers())) {
+      content_length_ = 0;
+      async_read_chunk_begin();
+    }
+    else {
+      content_length_ = get_content_length(http_response_.headers());
+      content_data_left_ = content_length_ - response_.size();
 
-    if (content_data_left_ > 0) {
       async_read_content(content_data_left_);
     }
+  }
+
+  void async_read_chunk_begin()
+  {
+    auto self = shared_from_this();
+    boost::asio::async_read_until(*socket_, response_, "\r\n",
+                                  [this, self](auto &error_code, auto length) {
+                                    handle_read_chunk_begin(error_code, length);
+                                  });
+  }
+
+  void handle_read_chunk_begin(const boost::system::error_code &error_code,
+                               std::size_t length)
+  {
+    if (error_code) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+    auto data = get_n_from_response_stream(length);
+    chunk_size_ = static_cast<std::size_t>(std::stoi(data, 0, 16));
+
+    if (response_.size() >= chunk_size_ + 2) {
+      chunk_data_left_ = 0;
+    }
+    else {
+      chunk_data_left_ = chunk_size_ - response_.size() + 2;
+    }
+
+    if (chunk_size_ > 0) {
+      async_read_chunk_data(chunk_data_left_);
+    } else {
+      http_response_.headers()
+          .remove("Transfer-Encoding")
+          .add_header("Content-Length", content_length_);
+    }
+  }
+
+  void async_read_chunk_data(std::size_t length)
+  {
+    auto self = shared_from_this();
+    boost::asio::async_read(*socket_, response_,
+                            boost::asio::transfer_at_least(length),
+                            [this, self](auto &error_code, auto length) {
+                              handle_read_chunk_data(error_code, length);
+                            });
+  }
+
+  void handle_read_chunk_data(const boost::system::error_code &error_code,
+                              std::size_t /*length*/)
+  {
+    bool is_eof = error_code == boost::asio::error::eof;
+
+    if (error_code && !is_eof) {
+      logger->error("{0}: {1}", error_code.value(), error_code.message());
+      return;
+    }
+
+    if (response_.size() >= chunk_size_ + 2) {
+      chunk_data_left_ = 0;
+    }
+    else {
+      chunk_data_left_ -= chunk_size_ - response_.size() + 2;
+    }
+
+    if (chunk_data_left_ > 0) {
+      async_read_chunk_data(chunk_data_left_);
+    }
+    else {
+      content_length_ += chunk_size_;
+      auto data = get_n_from_response_stream(chunk_size_);
+      http_response_.append_data(data);
+      get_n_from_response_stream(2); // consume CRLF
+
+      async_read_chunk_begin();
+    }
+  }
+
+  auto get_n_from_response_stream(std::size_t n)
+  {
+    assert(response_.size() >= n);
+    std::istream response_stream(&response_);
+    std::string data;
+    data.reserve(n);
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
+                std::back_inserter(data));
+    response_stream.ignore(1); // discard the last element since copy_n wont
+                               // increase the iterator after reading the last
+                               // one
+    return data;
   }
 
   void async_read_content(std::size_t bytes_to_read)
@@ -195,7 +316,7 @@ private:
   }
 
   void handle_read_content(const boost::system::error_code &error_code,
-                           std::size_t length)
+                           std::size_t /*length*/)
   {
     bool is_eof = error_code == boost::asio::error::eof;
 
@@ -204,14 +325,18 @@ private:
       return;
     }
 
-    std::istream response_stream(&response_);
-    http_response_.append_data(
-        std::string{std::istreambuf_iterator<char>(response_stream), {}});
+    if (response_.size() > content_length_) {
+      content_data_left_ = 0;
+    }
+     else {
+       content_data_left_ = content_length_ - response_.size();
+     }
 
-    content_data_left_ -= length;
-
-    if (!is_eof) {
+    if (content_data_left_ > 0) {
       async_read_content(content_data_left_);
+    }
+    else {
+      http_response_.append_data(get_n_from_response_stream(content_length_));
     }
   }
 
@@ -240,6 +365,15 @@ private:
 private:
   Logger logger = Sphinx::make_logger("HTTPClient");
 };
+
+inline auto make_http_client(const std::string &address, unsigned short port)
+{
+  return std::make_shared<HTTPClient<TCPSocket>>(address, port);
+}
+inline auto make_http_client(const std::string &socket_path)
+{
+  return std::make_shared<HTTPClient<UnixSocket>>(socket_path);
+}
 
 } // namespace v2
 } // namespace Sphinx

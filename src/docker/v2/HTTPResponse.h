@@ -52,7 +52,7 @@ public:
       w.write("{0}: {1}\r\n", header.first, header.second);
     }
 
-    w.write("Data: {0}\n", data_);
+    w.write("Data: >>>{0}<<<\n", data_);
     return w.str();
   }
 
@@ -61,11 +61,12 @@ public:
     data_.append(std::begin(data), std::end(data));
   }
 
-  const auto &headers() { return headers_; }
-  const auto &data() { return data_; }
-  const auto &status() { return status_; }
-  const auto &status_message() { return status_message_; }
-  const auto &http_version() { return http_version_; }
+  auto &headers() { return headers_; }
+  const auto &headers() const { return headers_; }
+  const auto &data() const { return data_; }
+  const auto &status() const { return status_; }
+  const auto &status_message() const { return status_message_; }
+  const auto &http_version() const { return http_version_; }
 };
 
 } // namespace v2
