@@ -37,3 +37,6 @@ RUN pacman --noconfirm -U *.tar.xz
 USER aur
 RUN pacaur -Syu --noedit --noconfirm boost-libs 
 RUN pacaur -Syu --noedit --noconfirm poco
+
+RUN pacaur -Syu --noedit --noconfirm zsh
+RUN touch ~/.zshrc
