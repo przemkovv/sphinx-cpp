@@ -49,6 +49,7 @@ std::shared_ptr<std::unique_ptr<T>> make_shared_unique_from_unique(std::unique_p
   return std::make_shared<std::unique_ptr<T>>(ptr);
 }
 
+std::string escape_control_characters(const std::string &input);
 
 } //namespace Sphinx
 

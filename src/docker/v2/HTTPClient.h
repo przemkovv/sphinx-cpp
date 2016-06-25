@@ -14,34 +14,11 @@
 
 #include "utils.h"
 
+#include <typeinfo>
+
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
-
-inline std::string escape_control_characters(const std::string &input)
-{
-  std::string output;
-  for (auto currentValue : input) {
-    switch (currentValue) {
-    case L'\t':
-      output.append("\\t");
-      break;
-    case L'\\':
-      output.append("\\\\");
-      break;
-    case L'\r':
-      output.append("\\r");
-      break;
-    case L'\n':
-      output.append("\\n");
-      break;
-    //.... etc.
-    default:
-      output.push_back(currentValue);
-    }
-  }
-  return output;
-}
 
 typedef boost::asio::ip::tcp::socket TCPSocket;
 typedef boost::asio::local::stream_protocol::socket UnixSocket;
@@ -211,7 +188,6 @@ private:
     else {
       content_length_ = get_content_length(http_response_.headers());
       content_data_left_ = content_length_ - response_.size();
-
       async_read_content(content_data_left_);
     }
   }
@@ -235,16 +211,12 @@ private:
     auto data = get_n_from_response_stream(length);
     chunk_size_ = static_cast<std::size_t>(std::stoi(data, 0, 16));
 
-    if (response_.size() >= chunk_size_ + 2) {
-      chunk_data_left_ = 0;
+    if (chunk_size_ + 2 >
+        response_.size()) { // data in the chunk ends with CRLF
+      chunk_data_left_ = chunk_size_ + 2 - response_.size();
+      async_read_chunk_data(chunk_data_left_);
     }
     else {
-      chunk_data_left_ = chunk_size_ - response_.size() + 2;
-    }
-
-    if (chunk_size_ > 0) {
-      async_read_chunk_data(chunk_data_left_);
-    } else {
       http_response_.headers()
           .remove("Transfer-Encoding")
           .add_header("Content-Length", content_length_);
@@ -270,15 +242,9 @@ private:
       logger->error("{0}: {1}", error_code.value(), error_code.message());
       return;
     }
-
-    if (response_.size() >= chunk_size_ + 2) {
-      chunk_data_left_ = 0;
-    }
-    else {
-      chunk_data_left_ -= chunk_size_ - response_.size() + 2;
-    }
-
-    if (chunk_data_left_ > 0) {
+    if (chunk_size_ + 2 >
+        response_.size()) { // data in the chunk ends with CRLF
+      chunk_data_left_ = chunk_size_ + 2 - response_.size();
       async_read_chunk_data(chunk_data_left_);
     }
     else {
@@ -325,19 +291,15 @@ private:
       return;
     }
 
-    if (response_.size() > content_length_) {
+    if (response_.size() >= content_length_) {
+      http_response_.append_data(get_n_from_response_stream(content_length_));
       content_data_left_ = 0;
     }
-     else {
-       content_data_left_ = content_length_ - response_.size();
-     }
-
-    if (content_data_left_ > 0) {
+    else {
+      content_data_left_ = content_length_ - response_.size();
       async_read_content(content_data_left_);
     }
-    else {
-      http_response_.append_data(get_n_from_response_stream(content_length_));
-    }
+
   }
 
   auto is_chunked(const HTTPHeaders &headers)
