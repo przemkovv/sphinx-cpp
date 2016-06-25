@@ -8,6 +8,8 @@
 #include <regex>
 #include <string>
 
+#include <experimental/optional>
+
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
@@ -16,13 +18,9 @@ class HTTPHeaders : public std::map<std::string, std::string> {
 public:
   using std::map<std::string, std::string>::map;
 
-  //HTTPHeaders() : std::map<std::string, std::string>::map() {}
-
-  //HTTPHeaders(const std::string &headers) { add_headers(headers); }
-
   HTTPHeaders &add_headers(std::string headers)
   {
-    std::regex header_regex("(.+): (.+)\r\n");
+    static const std::regex header_regex("(.+): (.+)\r\n");
     std::smatch sm;
 
     while (std::regex_search(headers, sm, header_regex)) {
@@ -45,6 +43,16 @@ public:
     insert(std::begin(headers), std::end(headers));
     return *this;
   }
+
+  auto get(const std::string &name) const {
+    auto header_it = find(name);
+    if (header_it != end()) {
+      return std::experimental::make_optional(header_it->second);
+    }
+    return std::experimental::optional<std::string>();
+
+  }
+
 };
 
 } // namespace v2

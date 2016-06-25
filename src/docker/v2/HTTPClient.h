@@ -36,8 +36,8 @@ class HTTPClient : public std::enable_shared_from_this<HTTPClient<T>> {
 private:
   using Socket = T;
   using std::enable_shared_from_this<HTTPClient<T>>::shared_from_this;
-  boost::asio::io_service &io_service_;
-  Socket socket_;
+  boost::asio::io_service io_service_;
+  std::shared_ptr<Socket> socket_;
 
   typename Endpoint<T>::type endpoint_;
 
@@ -47,41 +47,65 @@ private:
   HTTPRequest http_request_;
   HTTPResponse http_response_;
 
+  std::size_t content_data_left_;
+
 public:
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, TCPSocket>::value>>
-  HTTPClient(boost::asio::io_service &io_service,
+  HTTPClient(/*boost::asio::io_service &io_service,*/
              const std::string &address,
              unsigned short port)
-    : io_service_(io_service),
-      socket_(io_service_),
+    : /*io_service_(io_service),*/
+      /*socket_(io_service_),*/
       endpoint_(boost::asio::ip::address::from_string(address), port)
   {
   }
 
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, UnixSocket>::value>>
-  HTTPClient(boost::asio::io_service &io_service,
+  HTTPClient(/*boost::asio::io_service &io_service,*/
              const std::string &socket_path)
-    : io_service_(io_service), socket_(io_service_), endpoint_(socket_path)
+    : /*io_service_(io_service), socket_(io_service_), */ endpoint_(socket_path)
   {
+  }
+
+  auto post(const std::string &path, const std::string &data = "")
+  {
+    io_service_.reset();
+    socket_ = std::make_shared<Socket>(io_service_);
+
+    http_request_ = HTTPRequest{HTTPMethod::POST, path, data};
+
+    std::ostream request_stream(&request_);
+    request_stream << http_request_.to_string();
+
+    auto self = shared_from_this();
+    socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
+      handle_connect(error_code);
+
+    });
+
+    io_service_.run();
+    return http_response_;
   }
 
   auto get(const std::string &path)
   {
+    io_service_.reset();
+    socket_ = std::make_shared<Socket>(io_service_);
+
     http_request_ = HTTPRequest{HTTPMethod::GET, path};
 
     std::ostream request_stream(&request_);
     request_stream << http_request_.to_string();
 
     auto self = shared_from_this();
-    socket_.async_connect(endpoint_, [this, path, self](auto &error_code) {
-      self->handle_connect(error_code);
+    socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
+      handle_connect(error_code);
 
     });
 
-    io_service_.run(); // TODO: should this be here? or maybe try to make local
-                       // io_service?
+    io_service_.run();
     return http_response_;
   }
 
@@ -94,9 +118,9 @@ private:
     }
 
     auto self = shared_from_this();
-    boost::asio::async_write(socket_, request_,
+    boost::asio::async_write(*socket_, request_,
                              [this, self](auto &error_code, auto length) {
-                               self->handle_write_request(error_code, length);
+                               handle_write_request(error_code, length);
 
                              });
   }
@@ -110,10 +134,9 @@ private:
     }
 
     auto self = shared_from_this();
-    boost::asio::async_read_until(socket_, response_, "\r\n",
+    boost::asio::async_read_until(*socket_, response_, "\r\n",
                                   [this, self](auto &error_code, auto length) {
-                                    self->handle_read_status_line(error_code,
-                                                                  length);
+                                    handle_read_status_line(error_code, length);
 
                                   });
   }
@@ -133,12 +156,11 @@ private:
     http_response_.parse_status_line(line);
 
     auto self = shared_from_this();
-    boost::asio::async_read_until(
-        socket_, response_, "\r\n\r\n",
-        [this, self](auto &error_code, auto length) mutable {
-          self->handle_read_headers(error_code, length);
+    boost::asio::async_read_until(*socket_, response_, "\r\n\r\n",
+                                  [this, self](auto &error_code, auto length) {
+                                    handle_read_headers(error_code, length);
 
-        });
+                                  });
   }
 
   void handle_read_headers(const boost::system::error_code &error_code,
@@ -154,20 +176,25 @@ private:
                 std::back_inserter(headers));
     http_response_.parse_headers(headers);
 
-    auto content_length = static_cast<std::size_t>(
-        std::stoi(http_response_.headers().find("Content-Length")->second));
+    content_data_left_ = get_content_length(http_response_.headers()) - response_.size();
 
+    if (content_data_left_ > 0) {
+      async_read_content(content_data_left_);
+    }
+  }
+
+  void async_read_content(std::size_t bytes_to_read)
+  {
     auto self = shared_from_this();
-    boost::asio::async_read(socket_, response_,
-                            boost::asio::transfer_at_least(content_length),
+    boost::asio::async_read(*socket_, response_,
+                            boost::asio::transfer_at_least(bytes_to_read),
                             [this, self](auto &error_code, auto length) {
-                              self->handle_read_content(error_code, length);
-
+                              handle_read_content(error_code, length);
                             });
   }
 
   void handle_read_content(const boost::system::error_code &error_code,
-                           std::size_t /*length*/)
+                           std::size_t length)
   {
     bool is_eof = error_code == boost::asio::error::eof;
 
@@ -180,15 +207,23 @@ private:
     http_response_.append_data(
         std::string{std::istreambuf_iterator<char>(response_stream), {}});
 
-    if (!is_eof) {
-      auto self = shared_from_this();
-      boost::asio::async_read(socket_, response_,
-                              boost::asio::transfer_at_least(1),
-                              [this, self](auto &error_code, auto length) {
-                                self->handle_read_content(error_code, length);
+    content_data_left_ -= length;
 
-                              });
+    if (!is_eof) {
+      async_read_content(content_data_left_);
     }
+  }
+
+  auto get_content_length(const HTTPHeaders &headers)
+  {
+    auto content_length_header = headers.get("Content-Length");
+    std::size_t content_length = 0;
+
+    if (content_length_header) {
+      content_length =
+          static_cast<std::size_t>(std::stoi(*content_length_header));
+    }
+    return content_length;
   }
 
 private:

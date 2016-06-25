@@ -30,22 +30,16 @@ public:
 
   HTTPRequest(HTTPMethod method,
               const std::string &uri,
-              const HTTPHeaders &additional_headers = {})
-    : method_(method), uri_(uri)
-  {
-    addDefaultHeaders();
-    headers_.add_headers(additional_headers);
-  }
-  HTTPRequest(HTTPMethod method,
-              const std::string &uri,
-              const std::string &data,
+              const std::string &data = "",
               const HTTPHeaders &additional_headers = {})
     : method_(method), uri_(uri), data_(data)
   {
     addDefaultHeaders();
-    headers_.add_header("Content-Length", data.size())
-        .add_header("Content-Type", "application/json")
-        .add_headers(additional_headers);
+    if (data.size() > 0) {
+      headers_.add_header("Content-Length", data.size())
+          .add_header("Content-Type", "application/json");
+    }
+    headers_.add_headers(additional_headers);
   }
 
   std::string to_string() const

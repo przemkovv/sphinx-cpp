@@ -27,7 +27,7 @@ public:
   void parse_status_line(const std::string &status_line)
   {
 
-    std::regex status_regex("^(HTTP/\\d\\.\\d) (\\d{3}) (.+)");
+    static const std::regex status_regex("^(HTTP/\\d\\.\\d) (\\d{3}) (.+)");
     std::smatch sm;
 
     if (std::regex_search(status_line, sm, status_regex)) {
@@ -61,7 +61,11 @@ public:
     data_.append(std::begin(data), std::end(data));
   }
 
-  const HTTPHeaders &headers() { return headers_; }
+  const auto &headers() { return headers_; }
+  const auto &data() { return data_; }
+  const auto &status() { return status_; }
+  const auto &status_message() { return status_message_; }
+  const auto &http_version() { return http_version_; }
 };
 
 } // namespace v2
