@@ -57,5 +57,5 @@ enum class HTTPStatus {
 enum class HTTPMethod { POST, GET };
 
 } // namespace v2
-} // namespace Sphinx
 } // namespace Docker
+} // namespace Sphinx

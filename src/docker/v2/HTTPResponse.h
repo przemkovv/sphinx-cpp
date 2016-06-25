@@ -69,5 +69,5 @@ public:
 };
 
 } // namespace v2
-} // namespace Sphinx
 } // namespace Docker
+} // namespace Sphinx
