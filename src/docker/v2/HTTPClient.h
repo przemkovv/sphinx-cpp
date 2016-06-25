@@ -176,7 +176,8 @@ private:
                 std::back_inserter(headers));
     http_response_.parse_headers(headers);
 
-    content_data_left_ = get_content_length(http_response_.headers()) - response_.size();
+    content_data_left_ =
+        get_content_length(http_response_.headers()) - response_.size();
 
     if (content_data_left_ > 0) {
       async_read_content(content_data_left_);
