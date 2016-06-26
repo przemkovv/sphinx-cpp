@@ -1,6 +1,9 @@
 
 #include "HTTPResponse.h"
 
+#include <regex>
+#include <fmt/format.h>
+
 namespace Sphinx {
 namespace Docker {
 namespace v2 {

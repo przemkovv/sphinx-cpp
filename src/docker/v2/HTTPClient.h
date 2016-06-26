@@ -7,15 +7,12 @@
 #include "HTTPResponse.h"
 
 #include <boost/asio.hpp>
-#include <boost/endian/conversion.hpp>
 #include <string>
 
 #include <memory>
-#include <type_traits>
 
 #include "utils.h"
 
-#include <typeinfo>
 
 namespace Sphinx {
 namespace Docker {

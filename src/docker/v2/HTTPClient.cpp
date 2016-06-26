@@ -1,6 +1,10 @@
 
 #include "HTTPClient.h"
 
+#include <algorithm>
+#include <boost/endian/conversion.hpp>
+#include <typeinfo>
+
 namespace Sphinx {
 namespace Docker {
 namespace v2 {

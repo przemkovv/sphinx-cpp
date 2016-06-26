@@ -5,10 +5,8 @@
 
 #include "HTTPCommon.h"
 #include "HTTPHeaders.h"
-#include <fmt/format.h>
 
 #include <map>
-#include <regex>
 #include <string>
 
 namespace Sphinx {
