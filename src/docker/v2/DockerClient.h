@@ -32,7 +32,7 @@ class cannot_create_container_exception : public std::runtime_error {
 public:
   cannot_create_container_exception(const HTTPResponse &response)
     : runtime_error(fmt::format("Could not create container.\n{0}\n",
-                                response.to_string()))
+                                response.dump()))
   {
   }
 };
@@ -48,7 +48,7 @@ public:
 class server_error : public std::runtime_error {
 public:
   server_error(const HTTPResponse &response)
-    : runtime_error(fmt::format("Server error.\n{0}", response.to_string()))
+    : runtime_error(fmt::format("Server error.\n{0}", response.dump()))
   {
   }
 };
@@ -57,7 +57,7 @@ class undefined_error : public std::runtime_error {
 public:
   undefined_error(const HTTPResponse &response)
     : runtime_error(
-          fmt::format("Undefined error. \n{0}\n", response.to_string()))
+          fmt::format("Undefined error. \n{0}\n", response.dump()))
   {
   }
 };
@@ -112,12 +112,12 @@ public:
                       {"User", ""},
                       {"Memory", 0},
                       {"MemorySwap", 0},
-                      {"AttachStdin", false},
+                      {"AttachStdin", true},
                       {"AttachStdout", true},
                       {"AttachStderr", true},
                       {"Tty", false},
-                      {"OpenStdin", false},
-                      {"StdinOnce", false},
+                      {"OpenStdin", true},
+                      {"StdinOnce", true},
                       {"Cmd", commands},
                       {"Image", image_name},
                       {
@@ -125,7 +125,7 @@ public:
                       }};
     const auto request_data = container.dump();
     auto response = client->post("/containers/create", request_data);
-    logger->info("Create container: {0}", response.to_string());
+    logger->info("Create container: {0}", response.dump());
 
     if (response.status() == HTTPStatus::CREATED) {
       auto data_json = json::parse(response.data());
@@ -141,7 +141,7 @@ public:
   {
     auto request = fmt::format("/containers/{0}/start", container.id);
     auto response = client->post(request);
-    logger->info("Start container: {0}", response.to_string());
+    logger->info("Start container: {0}", response.dump());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-enum"
 
@@ -173,7 +173,7 @@ public:
                     container.id);
     auto response = client->post(request, "", {{"Upgrade", "tcp"}});
 
-    logger->info("Attach container: {0}", response.to_string());
+    logger->info("Attach container: {0}", response.dump());
   }
   
   void inspectContainer(const Container &container)
@@ -189,8 +189,7 @@ public:
   {
     auto container = createContainer(
         image_name,
-        {"/bin/zsh", "-c", "'I=1 && repeat 100  echo $((I++)) && sleep 1'"});
-        //{"/bin/zsh -c 'I=1 && repeat 100  echo $((I++)) && sleep 1'"});
+        {"/bin/zsh", "-c", "count=1; repeat 10 { echo $count && sleep 1; (( count++ )) } "});
 
      //auto container = createContainer(image_name, {"date"});
     //inspectContainer(container);

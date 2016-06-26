@@ -23,7 +23,9 @@ int main()
   spdlog::set_level(spdlog::level::debug);
   auto logger = Sphinx::make_logger("docker");
   Sphinx::make_logger("RESTClient", spdlog::level::warn);
-  Sphinx::make_logger("HTTPClient", spdlog::level::trace);
+  Sphinx::make_logger("HTTPClient", spdlog::level::debug);
+  Sphinx::make_logger("HTTPClient::request", spdlog::level::trace);
+  Sphinx::make_logger("HTTPClient::response", spdlog::level::trace);
   Sphinx::make_logger("DockerClient", spdlog::level::debug);
   logger->info("Hello");
 

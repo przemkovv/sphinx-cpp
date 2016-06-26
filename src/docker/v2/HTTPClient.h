@@ -83,6 +83,7 @@ public:
 
     std::ostream request_stream(&request_);
     request_stream << http_request_.to_string();
+    logger_request->trace(">>{}<<", http_request_.to_string());
 
     auto self = shared_from_this();
     socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
@@ -106,6 +107,7 @@ public:
 
     std::ostream request_stream(&request_);
     request_stream << http_request_.to_string();
+    logger_request->trace(">>{}<<", http_request_.to_string());
 
     auto self = shared_from_this();
     socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
@@ -183,6 +185,7 @@ private:
       receive_application_json();
     }
     else if (content_type == "application/vnd.docker.raw-stream") {
+      logger_response->trace(">>{}<<", http_response_.to_string());
       receive_application_docker_raw_stream();
     }
   }
@@ -220,6 +223,9 @@ private:
       return;
     }
     auto header = get_n_from_response_stream(header_length);
+    logger->trace("Stream header: {} -- {:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x}",
+                  header, header[0], header[1], header[2], header[3], header[4],
+                  header[5], header[6], header[7]);
     auto stream_type = static_cast<StreamType>(header[0]);
     auto data_size = boost::endian::big_to_native(
         *reinterpret_cast<std::uint32_t *>(&header[4]));
@@ -260,6 +266,7 @@ private:
 
     auto data = get_n_from_response_stream(data_size);
     http_response_.append_data(data);
+    logger_response->trace(">>{0}<<", data);
 
     if (!is_eof || response_.size() != 0) {
       async_read_docker_raw_stream_header();
@@ -424,6 +431,8 @@ private:
 
 private:
   Logger logger = Sphinx::make_logger("HTTPClient");
+  Logger logger_request = Sphinx::make_logger("HTTPClient::request");
+  Logger logger_response = Sphinx::make_logger("HTTPClient::response");
 };
 
 inline auto make_http_client(const std::string &address, unsigned short port)

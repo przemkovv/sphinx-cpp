@@ -41,7 +41,7 @@ public:
     headers_.add_headers(headers);
   }
 
-  std::string to_string() const
+  std::string dump() const
   {
     fmt::MemoryWriter w;
     w.write("Statusline: {0} {1} {2}\n", http_version_,
@@ -56,6 +56,22 @@ public:
     return w.str();
   }
 
+  std::string to_string(bool include_data = false) const
+  {
+    fmt::MemoryWriter w;
+    w.write("{0} {1} {2}\n", http_version_,
+            static_cast<int>(status_), status_message_);
+
+    for (auto header : headers_) {
+      w.write("{0}: {1}\r\n", header.first, header.second);
+    }
+    w.write("\r\n");
+    if (include_data && !data_.empty()) {
+      w.write("{0}", data_);
+    }
+
+    return w.str();
+  }
   template <typename T> void append_data(const T &data)
   {
     data_.append(std::begin(data), std::end(data));
