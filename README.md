@@ -8,7 +8,7 @@ Requirements
 ------------
 
 * [Boost](http://www.boost.org/)
-    -.Program_options
+    - Program_options
     - Boost.Endian
     - Boost.Filesystem
     - Boost.Asio
