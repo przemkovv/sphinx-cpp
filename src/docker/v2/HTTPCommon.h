@@ -54,8 +54,8 @@ enum class HTTPStatus {
   NOT_SUPPORTED        /* HTTP version not supported */
 };
 
-enum class HTTPMethod { POST, GET };
-
+enum class HTTPMethod { POST, GET, PUT, DELETE };
+enum class StreamType { stdin = 0, stdout = 1, stderr = 2 };
 } // namespace v2
 } // namespace Docker
 } // namespace Sphinx

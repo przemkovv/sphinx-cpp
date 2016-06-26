@@ -53,6 +53,12 @@ public:
     case HTTPMethod::POST:
       w.write("POST");
       break;
+    case HTTPMethod::PUT:
+      w.write("PUT");
+      break;
+    case HTTPMethod::DELETE:
+      w.write("DELETE");
+      break;
     }
     w.write(" {0} HTTP/1.1\r\n", uri_);
 
