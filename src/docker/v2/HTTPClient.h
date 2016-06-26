@@ -13,7 +13,6 @@
 
 #include "utils.h"
 
-
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
@@ -37,13 +36,14 @@ class HTTPClient : public std::enable_shared_from_this<HTTPClient<T>> {
 private:
   using Socket = T;
   using std::enable_shared_from_this<HTTPClient<T>>::shared_from_this;
+
   boost::asio::io_service io_service_;
   std::shared_ptr<Socket> socket_;
 
   typename Endpoint<T>::type endpoint_;
 
-  boost::asio::streambuf request_;
-  boost::asio::streambuf response_;
+  boost::asio::streambuf request_buffer_;
+  boost::asio::streambuf response_buffer_;
 
   HTTPRequest http_request_;
   HTTPResponse http_response_;
@@ -67,50 +67,67 @@ public:
   {
   }
 
+  HTTPResponse request(HTTPMethod method,
+                       const std::string &path,
+                       const std::string &data = "",
+                       const HTTPHeaders &headers = {});
   HTTPResponse post(const std::string &path,
                     const std::string &data = "",
                     const HTTPHeaders &headers = {});
-  HTTPResponse get(const std::string &path);
+  HTTPResponse get(const std::string &path,
+                   const std::string &data = "",
+                   const HTTPHeaders &headers = {});
+  // INFO: delete name is restricted
+  /*HTTPResponse delete(const std::string &path,
+                    const std::string &data = "",
+                    const HTTPHeaders &headers = {});*/
+  HTTPResponse put(const std::string &path,
+                   const std::string &data = "",
+                   const HTTPHeaders &headers = {});
 
 private:
-  void handle_connect(const boost::system::error_code &error_code); 
+  void prepare_request(const HTTPRequest &request);
+  void prepare_response();
+  void async_connect();
+
+  void handle_connect(const boost::system::error_code &error_code);
   void handle_write_request(const boost::system::error_code &error_code,
-                            std::size_t /*length*/); 
+                            std::size_t /*length*/);
   void handle_read_status_line(const boost::system::error_code &error_code,
-                               std::size_t length); 
+                               std::size_t length);
   void handle_read_headers(const boost::system::error_code &error_code,
                            std::size_t length);
 
-  void receive_application_docker_raw_stream(); 
-  void async_read_docker_raw_stream_header(); 
+  void receive_application_docker_raw_stream();
+  void async_read_docker_raw_stream_header();
   void handle_read_docker_raw_stream_header(
-      const boost::system::error_code &error_code, std::size_t /*length*/); 
+      const boost::system::error_code &error_code, std::size_t /*length*/);
   void async_read_docker_raw_stream_data(const StreamType &stream_type,
-                                         std::size_t data_size); 
+                                         std::size_t data_size);
   void handle_read_docker_raw_stream_data(
       const boost::system::error_code &error_code,
       std::size_t /*length*/,
       StreamType /*stream_type*/,
       std::size_t data_size);
 
-  void receive_application_json(); 
-  void async_read_chunk_begin(); 
+  void receive_application_json();
+  void async_read_chunk_begin();
   void handle_read_chunk_begin(const boost::system::error_code &error_code,
                                std::size_t length);
-void async_read_chunk_data(std::size_t length); 
+  void async_read_chunk_data(std::size_t length);
   void handle_read_chunk_data(const boost::system::error_code &error_code,
                               std::size_t /*length*/);
-void async_read_content(std::size_t bytes_to_read); 
+  void async_read_content(std::size_t bytes_to_read);
   void handle_read_content(const boost::system::error_code &error_code,
                            std::size_t /*length*/);
 
   auto get_n_from_response_stream(std::size_t n);
+
 private:
   Logger logger = Sphinx::make_logger("HTTPClient");
   Logger logger_request = Sphinx::make_logger("HTTPClient::request");
   Logger logger_response = Sphinx::make_logger("HTTPClient::response");
 };
-
 
 inline auto make_http_client(const std::string &address, unsigned short port)
 {
@@ -120,7 +137,6 @@ inline auto make_http_client(const std::string &socket_path)
 {
   return std::make_shared<HTTPClient<UnixSocket>>(socket_path);
 }
-
 
 } // namespace v2
 } // namespace Sphinx

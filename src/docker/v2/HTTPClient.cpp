@@ -10,67 +10,85 @@ namespace Docker {
 namespace v2 {
 
 template <typename T>
-HTTPResponse HTTPClient<T>::post(const std::string &path,
-                      const std::string &data ,
-                      const HTTPHeaders &headers)
+HTTPResponse HTTPClient<T>::request(HTTPMethod method,
+                                    const std::string &path,
+                                    const std::string &data,
+                                    const HTTPHeaders &headers)
 {
-  io_service_.reset();
-  socket_ = std::make_shared<Socket>(io_service_);
-
-  http_request_ = HTTPRequest{HTTPMethod::POST, path, data, headers};
-  http_response_ = HTTPResponse{};
-  response_.consume(response_.size());
-  assert(response_.size() == 0);
-
-  std::ostream request_stream(&request_);
-  request_stream << http_request_.to_string();
-  logger_request->trace(">>{}<<", http_request_.to_string());
-
-  auto self = shared_from_this();
-  socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
-    handle_connect(error_code);
-
-  });
+  prepare_request({method, path, data, headers});
+  prepare_response();
+  async_connect();
 
   io_service_.run();
   return http_response_;
 }
 
 template <typename T>
-HTTPResponse HTTPClient<T>::get(const std::string &path)
+HTTPResponse HTTPClient<T>::post(const std::string &path,
+                                 const std::string &data,
+                                 const HTTPHeaders &headers)
+{
+  return request(HTTPMethod::POST, path, data, headers);
+}
+
+template <typename T>
+HTTPResponse HTTPClient<T>::get(const std::string &path,
+                                const std::string &data,
+                                const HTTPHeaders &headers)
+{
+  return request(HTTPMethod::GET, path, data, headers);
+}
+
+template <typename T>
+HTTPResponse HTTPClient<T>::put(const std::string &path,
+                                const std::string &data,
+                                const HTTPHeaders &headers)
+{
+  return request(HTTPMethod::PUT, path, data, headers);
+}
+
+template <typename T> void HTTPClient<T>::prepare_response()
+{
+  http_response_ = HTTPResponse{};
+
+  // response_.consume(response_.size());
+  // assert(response_.size() == 0);
+  logger_response->notice("There is some data in the response_ stream.");
+}
+
+template <typename T>
+void HTTPClient<T>::prepare_request(const HTTPRequest &request)
+{
+  http_request_ = request;
+
+  assert(request_buffer_.size() == 0);
+  std::ostream request_stream(&request_buffer_);
+  request_stream << http_request_.to_string();
+  logger_request->trace(">>{}<<", http_request_.to_string());
+}
+
+template <typename T> void HTTPClient<T>::async_connect()
 {
   io_service_.reset();
   socket_ = std::make_shared<Socket>(io_service_);
 
-  http_request_ = HTTPRequest{HTTPMethod::GET, path};
-  http_response_ = HTTPResponse{};
-  response_.consume(response_.size());
-  assert(response_.size() == 0);
-
-  std::ostream request_stream(&request_);
-  request_stream << http_request_.to_string();
-  logger_request->trace(">>{}<<", http_request_.to_string());
-
   auto self = shared_from_this();
-  socket_->async_connect(endpoint_, [this, path, self](auto &error_code) {
+  socket_->async_connect(endpoint_, [this, self](auto &error_code) {
     handle_connect(error_code);
 
   });
-
-  io_service_.run();
-  return http_response_;
 }
 
 template <typename T>
 void HTTPClient<T>::handle_connect(const boost::system::error_code &error_code)
 {
-  if (error_code) { 
+  if (error_code) {
     logger->error("{0}: {1}", error_code.value(), error_code.message());
     return;
   }
 
   auto self = shared_from_this();
-  boost::asio::async_write(*socket_, request_,
+  boost::asio::async_write(*socket_, request_buffer_,
                            [this, self](auto &error_code, auto length) {
                              handle_write_request(error_code, length);
 
@@ -87,7 +105,7 @@ void HTTPClient<T>::handle_write_request(
   }
 
   auto self = shared_from_this();
-  boost::asio::async_read_until(*socket_, response_, "\r\n",
+  boost::asio::async_read_until(*socket_, response_buffer_, "\r\n",
                                 [this, self](auto &error_code, auto length) {
                                   handle_read_status_line(error_code, length);
 
@@ -107,7 +125,7 @@ void HTTPClient<T>::handle_read_status_line(
   http_response_.parse_status_line(line);
 
   auto self = shared_from_this();
-  boost::asio::async_read_until(*socket_, response_, "\r\n\r\n",
+  boost::asio::async_read_until(*socket_, response_buffer_, "\r\n\r\n",
                                 [this, self](auto &error_code, auto length) {
                                   handle_read_headers(error_code, length);
 
@@ -142,14 +160,13 @@ void HTTPClient<T>::receive_application_docker_raw_stream()
   async_read_docker_raw_stream_header();
 }
 
-template <typename T>
-void HTTPClient<T>::async_read_docker_raw_stream_header()
+template <typename T> void HTTPClient<T>::async_read_docker_raw_stream_header()
 {
   logger->trace("async_read_docker_raw_stream_header");
   const std::size_t header_length = 8;
   auto self = shared_from_this();
   boost::asio::async_read(
-      *socket_, response_, boost::asio::transfer_exactly(header_length),
+      *socket_, response_buffer_, boost::asio::transfer_exactly(header_length),
       [this, self](auto &error_code, auto length) {
         handle_read_docker_raw_stream_header(error_code, length);
       });
@@ -167,7 +184,7 @@ void HTTPClient<T>::handle_read_docker_raw_stream_header(
     logger->error("{0}: {1}", error_code.value(), error_code.message());
     return;
   }
-  if (is_eof && response_.size() == 0) {
+  if (is_eof && response_buffer_.size() == 0) {
     return;
   }
   auto header = get_n_from_response_stream(header_length);
@@ -191,7 +208,7 @@ void HTTPClient<T>::async_read_docker_raw_stream_data(
                 static_cast<uint32_t>(stream_type), data_size);
   auto self = shared_from_this();
   boost::asio::async_read(
-      *socket_, response_, boost::asio::transfer_exactly(data_size),
+      *socket_, response_buffer_, boost::asio::transfer_exactly(data_size),
       [this, self, stream_type, data_size](auto &error_code, auto length) {
         handle_read_docker_raw_stream_data(error_code, length, stream_type,
                                            data_size);
@@ -218,13 +235,12 @@ void HTTPClient<T>::handle_read_docker_raw_stream_data(
   http_response_.append_data(data);
   logger_response->trace(">>{0}<<", data);
 
-  if (!is_eof || response_.size() != 0) {
+  if (!is_eof || response_buffer_.size() != 0) {
     async_read_docker_raw_stream_header();
   }
 }
 
-template <typename T>
-void HTTPClient<T>::receive_application_json()
+template <typename T> void HTTPClient<T>::receive_application_json()
 {
   if (http_response_.headers().is_chunked()) {
     content_length_ = 0;
@@ -232,16 +248,15 @@ void HTTPClient<T>::receive_application_json()
   }
   else {
     content_length_ = http_response_.headers().get_content_length();
-    content_data_left_ = content_length_ - response_.size();
+    content_data_left_ = content_length_ - response_buffer_.size();
     async_read_content(content_data_left_);
   }
 }
 
-template <typename T>
-void HTTPClient<T>::async_read_chunk_begin()
+template <typename T> void HTTPClient<T>::async_read_chunk_begin()
 {
   auto self = shared_from_this();
-  boost::asio::async_read_until(*socket_, response_, "\r\n",
+  boost::asio::async_read_until(*socket_, response_buffer_, "\r\n",
                                 [this, self](auto &error_code, auto length) {
                                   handle_read_chunk_begin(error_code, length);
                                 });
@@ -258,8 +273,8 @@ void HTTPClient<T>::handle_read_chunk_begin(
   auto data = get_n_from_response_stream(length);
   chunk_size_ = static_cast<std::size_t>(std::stoi(data, nullptr, 16));
 
-  if (chunk_size_ + 2 > response_.size()) { // data in the chunk ends with CRLF
-    chunk_data_left_ = chunk_size_ + 2 - response_.size();
+  if (chunk_size_ + 2 > response_buffer_.size()) { // data in the chunk ends with CRLF
+    chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
   else {
@@ -273,7 +288,7 @@ template <typename T>
 void HTTPClient<T>::async_read_chunk_data(std::size_t length)
 {
   auto self = shared_from_this();
-  boost::asio::async_read(*socket_, response_,
+  boost::asio::async_read(*socket_, response_buffer_,
                           boost::asio::transfer_at_least(length),
                           [this, self](auto &error_code, auto length) {
                             handle_read_chunk_data(error_code, length);
@@ -290,8 +305,8 @@ void HTTPClient<T>::handle_read_chunk_data(
     logger->error("{0}: {1}", error_code.value(), error_code.message());
     return;
   }
-  if (chunk_size_ + 2 > response_.size()) { // data in the chunk ends with CRLF
-    chunk_data_left_ = chunk_size_ + 2 - response_.size();
+  if (chunk_size_ + 2 > response_buffer_.size()) { // data in the chunk ends with CRLF
+    chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
   else {
@@ -307,8 +322,8 @@ void HTTPClient<T>::handle_read_chunk_data(
 template <typename T>
 auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
 {
-  assert(response_.size() >= n);
-  std::istream response_stream(&response_);
+  assert(response_buffer_.size() >= n);
+  std::istream response_stream(&response_buffer_);
   std::string data;
   data.reserve(n);
   std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
@@ -323,7 +338,7 @@ template <typename T>
 void HTTPClient<T>::async_read_content(std::size_t bytes_to_read)
 {
   auto self = shared_from_this();
-  boost::asio::async_read(*socket_, response_,
+  boost::asio::async_read(*socket_, response_buffer_,
                           boost::asio::transfer_at_least(bytes_to_read),
                           [this, self](auto &error_code, auto length) {
                             handle_read_content(error_code, length);
@@ -341,16 +356,15 @@ void HTTPClient<T>::handle_read_content(
     return;
   }
 
-  if (response_.size() >= content_length_) {
+  if (response_buffer_.size() >= content_length_) {
     http_response_.append_data(get_n_from_response_stream(content_length_));
     content_data_left_ = 0;
   }
   else {
-    content_data_left_ = content_length_ - response_.size();
+    content_data_left_ = content_length_ - response_buffer_.size();
     async_read_content(content_data_left_);
   }
 }
-
 
 template class HTTPClient<TCPSocket>;
 template class HTTPClient<UnixSocket>;
