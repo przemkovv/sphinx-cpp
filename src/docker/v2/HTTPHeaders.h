@@ -5,7 +5,6 @@
 #include <fmt/format.h>
 
 #include <map>
-#include <regex>
 #include <string>
 
 #include <experimental/optional>
@@ -18,18 +17,7 @@ class HTTPHeaders : public std::map<std::string, std::string> {
 public:
   using std::map<std::string, std::string>::map;
 
-  HTTPHeaders &add_headers(std::string headers)
-  {
-    static const std::regex header_regex("(.+): (.+)\r\n");
-    std::smatch sm;
-
-    while (std::regex_search(headers, sm, header_regex)) {
-      add_header(sm[1], sm[2].str());
-      headers = sm.suffix();
-    }
-
-    return *this;
-  }
+  HTTPHeaders &add_headers(std::string headers);
 
   template <typename T>
   HTTPHeaders &add_header(const std::string &name, const T &value)
@@ -44,22 +32,12 @@ public:
     return *this;
   }
 
-  auto get(const std::string &name) const {
-    auto header_it = find(name);
-    if (header_it != end()) {
-      return std::experimental::make_optional(header_it->second);
-    }
-    return std::experimental::optional<std::string>();
+  std::experimental::optional<std::string> get(const std::string &name) const;
+  HTTPHeaders &remove(const std::string &name);
 
-  }
-  HTTPHeaders &remove(const std::string &name) {
-    auto header_it = find(name);
-    if (header_it != end()) {
-      erase(header_it);
-    }
-    return *this;
-  }
-
+  bool is_chunked() const;
+  std::size_t get_content_length() const;
+  std::string get_content_type() const;
 };
 
 } // namespace v2
