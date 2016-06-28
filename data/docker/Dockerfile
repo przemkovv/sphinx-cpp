@@ -1,13 +1,12 @@
 FROM base/archlinux:latest
 
-RUN pacman --noconfirm --needed -Sy archlinux-keyring
-RUN pacman --noconfirm --needed -Sy base-devel git expac yajl perl
-RUN pacman-db-upgrade
-RUN pacman --noconfirm --needed -Syu
-RUN pacman --noconfirm --needed -Sy libunistring
+RUN pacman --noconfirm --needed -Sy archlinux-keyring && \
+    pacman --noconfirm --needed -Sy base-devel git expac yajl perl && \
+    pacman-db-upgrade && \
+    pacman --noconfirm --needed -Syu libunistring
 
-RUN useradd -m -s /bin/bash aur && echo "aur ALL = NOPASSWD: /usr/bin/pacman" >> /etc/sudoers
-RUN mkdir /tmp/pacaur && \
+RUN useradd -m -s /bin/bash aur && echo "aur ALL = NOPASSWD: /usr/bin/pacman" >> /etc/sudoers && \
+    mkdir /tmp/pacaur && \
     chown -R aur:aur /tmp/pacaur && \
     chmod -R 771 /tmp/pacaur
 
@@ -35,8 +34,5 @@ WORKDIR /tmp/pacaur/pacaur
 RUN pacman --noconfirm -U *.tar.xz
 
 USER aur
-RUN pacaur -Syu --noedit --noconfirm boost-libs 
-RUN pacaur -Syu --noedit --noconfirm poco
-
-RUN pacaur -Syu --noedit --noconfirm zsh
-RUN touch ~/.zshrc
+RUN pacaur -Syu --noedit --noconfirm boost-libs  poco zsh && \
+    touch ~/.zshrc
