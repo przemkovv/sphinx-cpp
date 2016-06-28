@@ -1,5 +1,5 @@
 
-#include "DockerClient.h"
+#include "v1/DockerClient.h"
 
 #include "Logger.h"
 
@@ -17,7 +17,7 @@ int main()
 
     try {
         {
-            auto docker = Sphinx::Docker::make_docker_client("/var/run/docker.sock");
+            auto docker = Sphinx::Docker::v1::make_docker_client("/var/run/docker.sock");
             //logger->info("Info:\n{} ", docker.getInfo());
             //logger->info("Containers:\n{} ", docker.getContainers());
             logger->info("Containers:\n{} ", docker.getContainers());
