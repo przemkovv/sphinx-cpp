@@ -280,7 +280,7 @@ void HTTPClient<T>::handle_read_chunk_begin(
   auto data = get_n_from_response_stream(length);
   chunk_size_ = static_cast<std::size_t>(std::stoi(data, nullptr, 16));
 
-  if (chunk_size_ + 2 >
+  if (chunk_size_ + 2 >=
       response_buffer_.size()) { // data in the chunk ends with CRLF
     chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
@@ -335,11 +335,13 @@ auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
   std::istream response_stream(&response_buffer_);
   std::string data;
   data.reserve(n);
-  std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
-              std::back_inserter(data));
-  response_stream.ignore(1); // discard the last element since copy_n wont
-                             // increase the iterator after reading the last
-                             // one
+  if (n > 0) {
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
+                std::back_inserter(data));
+    response_stream.ignore(1); // discard the last element since copy_n wont
+                               // increase the iterator after reading the last
+                               // one
+  }
   return data;
 }
 
