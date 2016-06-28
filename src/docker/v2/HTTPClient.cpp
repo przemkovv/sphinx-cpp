@@ -2,6 +2,7 @@
 #include "HTTPClient.h"
 
 #include <algorithm>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/endian/conversion.hpp>
 #include <typeinfo>
 
@@ -53,7 +54,9 @@ template <typename T> void HTTPClient<T>::prepare_response()
 
   // response_.consume(response_.size());
   // assert(response_.size() == 0);
-  logger_response->notice("There is some data in the response_ stream.");
+  if (response_buffer_.size() > 0) {
+    logger_response->notice("There is some data in the response_buffer_.");
+  }
 }
 
 template <typename T>
@@ -144,10 +147,14 @@ void HTTPClient<T>::handle_read_headers(
   http_response_.parse_headers(headers);
 
   auto content_type = http_response_.headers().get_content_type();
-  if (content_type == "application/json") {
+  if (boost::starts_with(content_type, "application/json") ||
+      boost::starts_with(content_type, "text/plain")) {
+    // if (content_type == "application/json") {
     receive_application_json();
   }
-  else if (content_type == "application/vnd.docker.raw-stream") {
+  else if (boost::starts_with(content_type,
+                              "application/vnd.docker.raw-stream")) {
+    // else if (content_type == "application/vnd.docker.raw-stream") {
     logger_response->trace(">>{}<<", http_response_.to_string());
     receive_application_docker_raw_stream();
   }
@@ -273,7 +280,8 @@ void HTTPClient<T>::handle_read_chunk_begin(
   auto data = get_n_from_response_stream(length);
   chunk_size_ = static_cast<std::size_t>(std::stoi(data, nullptr, 16));
 
-  if (chunk_size_ + 2 > response_buffer_.size()) { // data in the chunk ends with CRLF
+  if (chunk_size_ + 2 >
+      response_buffer_.size()) { // data in the chunk ends with CRLF
     chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
@@ -305,7 +313,8 @@ void HTTPClient<T>::handle_read_chunk_data(
     logger->error("{0}: {1}", error_code.value(), error_code.message());
     return;
   }
-  if (chunk_size_ + 2 > response_buffer_.size()) { // data in the chunk ends with CRLF
+  if (chunk_size_ + 2 >
+      response_buffer_.size()) { // data in the chunk ends with CRLF
     chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
