@@ -149,13 +149,10 @@ void HTTPClient<T>::handle_read_headers(
   auto content_type = http_response_.headers().get_content_type();
   if (boost::starts_with(content_type, "application/json") ||
       boost::starts_with(content_type, "text/plain")) {
-    // if (content_type == "application/json") {
     receive_application_json();
   }
   else if (boost::starts_with(content_type,
                               "application/vnd.docker.raw-stream")) {
-    // else if (content_type == "application/vnd.docker.raw-stream") {
-    logger_response->trace(">>{}<<", http_response_.to_string());
     receive_application_docker_raw_stream();
   }
 }
