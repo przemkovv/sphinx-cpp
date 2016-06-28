@@ -44,6 +44,7 @@ public:
   bool startContainer(const Container &container);
   void attachContainer(const Container &container);
   void inspectContainer(const Container &container);
+  void deleteContainer(const Container &container);
   void run();
 };
 

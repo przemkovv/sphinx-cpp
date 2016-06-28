@@ -16,7 +16,6 @@
 
 #pragma clang diagnostic pop
 
-
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
@@ -82,7 +81,6 @@ bool DockerClient<T>::startContainer(const Container &container)
   logger->info("Start container: {0}", response.dump());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-enum"
-
   switch (response.status()) {
   case HTTPStatus::NOT_FOUND: {
     throw container_doesnt_exist_exception{container};
@@ -100,7 +98,6 @@ bool DockerClient<T>::startContainer(const Container &container)
   default:
     throw undefined_error{response};
   }
-
 #pragma clang diagnostic pop
 }
 
@@ -117,11 +114,33 @@ void DockerClient<T>::attachContainer(const Container &container)
 template <typename T>
 void DockerClient<T>::inspectContainer(const Container &container)
 {
-  auto data = client->get("/info").data();
-  auto request = fmt::format("/containers/{0}/json", container.id);
-  auto response = client->get(request);
+  auto query_path = fmt::format("/containers/{0}/json", container.id);
+  auto response = client->get(query_path);
 
-  logger->info("Inspect container: {0}", response.to_string());
+  if (response.status() == HTTPStatus::OK) {
+    auto data = json::parse(response.data());
+    logger->info("Inspect container: {0}", data.dump(2));
+  }
+  else {
+    logger->info(
+        "Inspecting container: {0} failed (status code: {1} {2}).\nData: {3}",
+        container.id, static_cast<uint32_t>(response.status()),
+        response.status_message(), response.data());
+  }
+}
+template <typename T>
+void DockerClient<T>::deleteContainer(const Container &container)
+{
+  auto query_path = fmt::format("/containers/{0}", container.id);
+  auto response = client->request(HTTPMethod::DELETE, query_path);
+  if (response.status() == HTTPStatus::NO_CONTENT) {
+    logger->info("Removed container: {0}", container.id);
+  }
+  else {
+    logger->info("Removing container: {0} failed (status code: {1} {2}).",
+                 container.id, static_cast<uint32_t>(response.status()),
+                 response.status_message());
+  }
 }
 
 template <typename T> void DockerClient<T>::run()
@@ -129,12 +148,15 @@ template <typename T> void DockerClient<T>::run()
   auto container = createContainer(
       image_name,
       {"/bin/zsh", "-c",
-       "count=1; repeat 10 { echo $count && sleep 1; (( count++ )) } "});
+       "count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "});
 
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
   startContainer(container);
   attachContainer(container);
+  inspectContainer(container);
+  deleteContainer(container);
+  inspectContainer(container);
   // 1. Create the container
   // 2. If the status code is 404, it means the image doesn’t exist:
   //    a. Try to pull it.
