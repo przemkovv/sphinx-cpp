@@ -14,6 +14,7 @@
 
 namespace Sphinx {
 namespace Docker {
+namespace v1 {
 
 enum class http_status {
     ERROR = -1,		/* An error response from httpXxxx() */
@@ -267,5 +268,6 @@ class RESTClient : protected IOConnection<T> {
 
         Logger logger = make_logger("RESTClient");
 };
+} // namespace v1
 } // namespace Docker
 } // namespace Sphinx

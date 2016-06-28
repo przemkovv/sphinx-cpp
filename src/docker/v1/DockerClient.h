@@ -17,6 +17,7 @@
 
 namespace Sphinx {
 namespace Docker {
+namespace v1 {
 
 using json = nlohmann::json;
 
@@ -190,5 +191,6 @@ DockerClient<UnixSocket> make_docker_client(const std::string& socket_path)
 }
 
 
+} // namespace v1
 } // namespace Docker
 } // namespace Sphinx

@@ -7,6 +7,7 @@
 
 namespace Sphinx {
 namespace Docker {
+namespace v1 {
 
 typedef boost::asio::ip::tcp::socket TCPSocket;
 typedef boost::asio::local::stream_protocol::socket UnixSocket;
@@ -95,5 +96,6 @@ class IOConnection {
     private:
         /* data */
 };
+} // namespace v1
 } // namespace Sphinx
 } // namespace Docker
