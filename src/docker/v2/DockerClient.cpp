@@ -6,6 +6,10 @@
 #include "HTTPCommon.h"
 #include <fmt/format.h>
 
+#include <chrono>
+#include <future>
+#include <thread>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
 #pragma clang diagnostic ignored "-Wdocumentation"
@@ -104,9 +108,28 @@ void DockerClient<T>::attachContainer(const Container &container)
 {
   auto request = fmt::format(
       "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
-  auto response = client->post(request, "", {{"Upgrade", "tcp"}});
+  boost::asio::streambuf output;
+  boost::asio::streambuf error;
+  client->set_output_stream(&output);
+  client->set_error_stream(&error);
+  client->use_output_streams(true);
 
-  logger->info("Attach container: {0}", response.dump());
+  auto response_future = std::async(std::launch::async, [&]() {
+    return client->post(request, "", {{"Upgrade", "tcp"}});
+  });
+
+  std::istream output_stream(&output);
+  std::future_status status;
+  do {
+    std::string data{std::istreambuf_iterator<char>(output_stream), {}};
+    if (!data.empty()) {
+      logger->info("Attach container: {0}", data);
+    }
+
+    status = response_future.wait_for(std::chrono::milliseconds(5));
+  } while (status != std::future_status::ready);
+
+  client->use_output_streams(false);
 }
 
 template <typename T>
@@ -146,7 +169,7 @@ template <typename T> void DockerClient<T>::run()
   auto container = createContainer(
       image_name,
       {"/bin/zsh", "-c",
-       "count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "});
+       "count=1; repeat 20 { echo $count && sleep 1; (( count++ )) } "});
 
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
@@ -155,6 +178,7 @@ template <typename T> void DockerClient<T>::run()
   inspectContainer(container);
   deleteContainer(container);
   inspectContainer(container);
+  // getContainers();
   // 1. Create the container
   // 2. If the status code is 404, it means the image doesn’t exist:
   //    a. Try to pull it.
