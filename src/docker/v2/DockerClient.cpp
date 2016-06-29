@@ -68,9 +68,7 @@ auto DockerClient<T>::createContainer(const std::string &image_name,
     Container container{data_json["Id"]};
     return container;
   }
-  else {
-    throw cannot_create_container_exception{response};
-  }
+  throw cannot_create_container_exception{response};
 }
 
 template <typename T>

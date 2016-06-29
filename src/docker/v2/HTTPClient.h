@@ -10,6 +10,7 @@
 #include <string>
 
 #include <memory>
+#include <stdexcept>
 
 #include "utils.h"
 
@@ -31,27 +32,14 @@ template <> struct Endpoint<TCPSocket> {
   using type = boost::asio::ip::tcp::endpoint;
 };
 
+
+
+
 template <typename T>
 class HTTPClient : public std::enable_shared_from_this<HTTPClient<T>> {
-private:
+
   using Socket = T;
-  using std::enable_shared_from_this<HTTPClient<T>>::shared_from_this;
 
-  boost::asio::io_service io_service_;
-  std::shared_ptr<Socket> socket_;
-
-  typename Endpoint<T>::type endpoint_;
-
-  boost::asio::streambuf request_buffer_;
-  boost::asio::streambuf response_buffer_;
-
-  HTTPRequest http_request_;
-  HTTPResponse http_response_;
-
-  std::size_t content_data_left_;
-  std::size_t content_length_;
-  std::size_t chunk_data_left_;
-  std::size_t chunk_size_;
 
 public:
   template <typename U = Socket,
@@ -110,7 +98,7 @@ private:
       StreamType /*stream_type*/,
       std::size_t data_size);
 
-  void receive_application_json();
+  void receive_text();
   void async_read_chunk_begin();
   void handle_read_chunk_begin(const boost::system::error_code &error_code,
                                std::size_t length);
@@ -124,9 +112,31 @@ private:
   auto get_n_from_response_stream(std::size_t n);
 
 private:
+  void log_error(const boost::system::error_code &error_code);
   Logger logger = Sphinx::make_logger("HTTPClient");
   Logger logger_request = Sphinx::make_logger("HTTPClient::request");
   Logger logger_response = Sphinx::make_logger("HTTPClient::response");
+
+private:
+  using std::enable_shared_from_this<HTTPClient<T>>::shared_from_this;
+
+  boost::asio::io_service io_service_;
+  std::shared_ptr<Socket> socket_;
+
+  typename Endpoint<T>::type endpoint_;
+
+  boost::asio::streambuf request_buffer_;
+  boost::asio::streambuf response_buffer_;
+
+  HTTPRequest http_request_;
+  HTTPResponse http_response_;
+
+  std::size_t content_data_left_;
+  std::size_t content_length_;
+  std::size_t chunk_data_left_;
+  std::size_t chunk_size_;
+
+  const std::size_t CRLF = 2;
 };
 
 inline auto make_http_client(const std::string &address, unsigned short port)

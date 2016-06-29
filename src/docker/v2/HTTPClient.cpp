@@ -60,6 +60,12 @@ template <typename T> void HTTPClient<T>::prepare_response()
 }
 
 template <typename T>
+void HTTPClient<T>::log_error(const boost::system::error_code &error_code)
+{
+  logger->error("{0}: {1}", error_code.value(), error_code.message());
+}
+
+template <typename T>
 void HTTPClient<T>::prepare_request(const HTTPRequest &request)
 {
   http_request_ = request;
@@ -86,7 +92,7 @@ template <typename T>
 void HTTPClient<T>::handle_connect(const boost::system::error_code &error_code)
 {
   if (error_code) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
 
@@ -103,7 +109,7 @@ void HTTPClient<T>::handle_write_request(
     const boost::system::error_code &error_code, std::size_t /*length*/)
 {
   if (error_code) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
 
@@ -120,7 +126,7 @@ void HTTPClient<T>::handle_read_status_line(
     const boost::system::error_code &error_code, std::size_t length)
 {
   if (error_code) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
 
@@ -140,7 +146,7 @@ void HTTPClient<T>::handle_read_headers(
     const boost::system::error_code &error_code, std::size_t length)
 {
   if (error_code) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
   std::string headers = get_n_from_response_stream(length);
@@ -149,7 +155,7 @@ void HTTPClient<T>::handle_read_headers(
   auto content_type = http_response_.headers().get_content_type();
   if (boost::starts_with(content_type, "application/json") ||
       boost::starts_with(content_type, "text/plain")) {
-    receive_application_json();
+    receive_text();
   }
   else if (boost::starts_with(content_type,
                               "application/vnd.docker.raw-stream")) {
@@ -185,7 +191,7 @@ void HTTPClient<T>::handle_read_docker_raw_stream_header(
 
   const std::size_t header_length = 8;
   if (error_code && !is_eof) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
   if (is_eof && response_buffer_.size() == 0) {
@@ -231,7 +237,7 @@ void HTTPClient<T>::handle_read_docker_raw_stream_data(
   bool is_eof = error_code == boost::asio::error::eof;
 
   if (error_code && !is_eof) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
 
@@ -244,7 +250,7 @@ void HTTPClient<T>::handle_read_docker_raw_stream_data(
   }
 }
 
-template <typename T> void HTTPClient<T>::receive_application_json()
+template <typename T> void HTTPClient<T>::receive_text()
 {
   if (http_response_.headers().is_chunked()) {
     content_length_ = 0;
@@ -271,15 +277,15 @@ void HTTPClient<T>::handle_read_chunk_begin(
     const boost::system::error_code &error_code, std::size_t length)
 {
   if (error_code) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
   auto data = get_n_from_response_stream(length);
   chunk_size_ = static_cast<std::size_t>(std::stoi(data, nullptr, 16));
 
-  if (chunk_size_ + 2 >=
+  if (chunk_size_ + CRLF >=
       response_buffer_.size()) { // data in the chunk ends with CRLF
-    chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
+    chunk_data_left_ = chunk_size_ + CRLF - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
   else {
@@ -307,37 +313,52 @@ void HTTPClient<T>::handle_read_chunk_data(
   bool is_eof = error_code == boost::asio::error::eof;
 
   if (error_code && !is_eof) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
-  if (chunk_size_ + 2 >
+  if (chunk_size_ + CRLF >
       response_buffer_.size()) { // data in the chunk ends with CRLF
-    chunk_data_left_ = chunk_size_ + 2 - response_buffer_.size();
+    chunk_data_left_ = chunk_size_ + CRLF - response_buffer_.size();
     async_read_chunk_data(chunk_data_left_);
   }
   else {
     content_length_ += chunk_size_;
     auto data = get_n_from_response_stream(chunk_size_);
     http_response_.append_data(data);
-    get_n_from_response_stream(2); // consume CRLF
+    get_n_from_response_stream(CRLF); // consume CRLF
 
     async_read_chunk_begin();
   }
 }
 
 template <typename T>
+void HTTPClient<T>::append_n_data_from_response_stream(std::size_t n)
+{
+  assert(response_buffer_.size() >= n);
+  if (n > 0) {
+    std::istream response_stream(&response_buffer_);
+    std::ostream output_stream(output_buffer_.get());
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
+                std::ostream_iterator<char>(output_stream));
+
+    response_stream.ignore(1);
+  }
+}
+template <typename T>
 auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
 {
   assert(response_buffer_.size() >= n);
-  std::istream response_stream(&response_buffer_);
   std::string data;
   data.reserve(n);
   if (n > 0) {
+    std::istream response_stream(&response_buffer_);
     std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
                 std::back_inserter(data));
-    response_stream.ignore(1); // discard the last element since copy_n wont
-                               // increase the iterator after reading the last
-                               // one
+
+    // discard the last element since copy_n wont increase the iterator after
+    // reading the last one (see
+    // http://cplusplus.github.io/LWG/lwg-active.html#2471 )
+    response_stream.ignore(1);
   }
   return data;
 }
@@ -360,7 +381,7 @@ void HTTPClient<T>::handle_read_content(
   bool is_eof = error_code == boost::asio::error::eof;
 
   if (error_code && !is_eof) {
-    logger->error("{0}: {1}", error_code.value(), error_code.message());
+    log_error(error_code);
     return;
   }
 
