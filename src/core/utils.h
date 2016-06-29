@@ -35,6 +35,21 @@ enum class ExitCode
 
 std::string to_string(Poco::Pipe& pipe);
 
+/// @brief Auxiliary function to create a shared unique ptr.
+template<class T, class...Args >
+std::shared_ptr<std::unique_ptr<T>> make_shared_unique(Args&&... args)
+{
+  return std::make_shared<std::unique_ptr<T>>(
+      std::make_unique<T>(std::forward<Args>(args)...));
+}
+/// @brief Auxiliary function to create a shared unique ptr.
+template<class T, class...Args >
+std::shared_ptr<std::unique_ptr<T>> make_shared_unique_from_unique(std::unique_ptr<T> ptr)
+{
+  return std::make_shared<std::unique_ptr<T>>(ptr);
+}
+
+std::string escape_control_characters(const std::string &input);
 
 } //namespace Sphinx
 
