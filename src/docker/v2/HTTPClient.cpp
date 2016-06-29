@@ -332,19 +332,6 @@ void HTTPClient<T>::handle_read_chunk_data(
 }
 
 template <typename T>
-void HTTPClient<T>::append_n_data_from_response_stream(std::size_t n)
-{
-  assert(response_buffer_.size() >= n);
-  if (n > 0) {
-    std::istream response_stream(&response_buffer_);
-    std::ostream output_stream(output_buffer_.get());
-    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
-                std::ostream_iterator<char>(output_stream));
-
-    response_stream.ignore(1);
-  }
-}
-template <typename T>
 auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
 {
   assert(response_buffer_.size() >= n);
