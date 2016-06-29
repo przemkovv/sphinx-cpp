@@ -10,6 +10,7 @@
 #include <string>
 
 #include <memory>
+#include <experimental/memory>
 #include <stdexcept>
 
 #include "utils.h"
@@ -32,26 +33,41 @@ template <> struct Endpoint<TCPSocket> {
   using type = boost::asio::ip::tcp::endpoint;
 };
 
+class http_client_exception : public std::runtime_error {
 
+public:
+  http_client_exception(const boost::system::error_code &error_code)
+    : runtime_error(
+          fmt::format("{0}: {1}", error_code.value(), error_code.message()))
+  {
+  }
+};
 
+struct stdio_buffers {
+  boost::asio::streambuf in;
+  boost::asio::streambuf out;
+  boost::asio::streambuf err;
+};
 
 template <typename T>
 class HTTPClient : public std::enable_shared_from_this<HTTPClient<T>> {
 
   using Socket = T;
 
+  template<typename W>
+  using observer_ptr = std::experimental::observer_ptr<W>;
 
 public:
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, TCPSocket>::value>>
   explicit HTTPClient(const std::string &address, unsigned short port)
-    : endpoint_(boost::asio::ip::address::from_string(address), port)
+    : endpoint_(boost::asio::ip::address::from_string(address), port), use_output_streams_(false)
   {
   }
 
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, UnixSocket>::value>>
-  explicit HTTPClient(const std::string &socket_path) : endpoint_(socket_path)
+  explicit HTTPClient(const std::string &socket_path) : endpoint_(socket_path), use_output_streams_(false)
   {
   }
 
@@ -73,7 +89,23 @@ public:
                    const std::string &data = "",
                    const HTTPHeaders &headers = {});
 
+  void set_output_stream(observer_ptr<boost::asio::streambuf> streambuf) {
+    output_buffer_ = streambuf;
+  }
+  void set_error_stream(observer_ptr<boost::asio::streambuf> streambuf) {
+    error_buffer_ = streambuf;
+
+  }
+  void use_output_streams(bool use) {
+    assert(error_buffer_.get() != nullptr);
+    assert(output_buffer_.get() != nullptr);
+
+    use_output_streams_ = use;
+  }
+  
+
 private:
+
   void prepare_request(const HTTPRequest &request);
   void prepare_response();
   void async_connect();
@@ -110,6 +142,7 @@ private:
                            std::size_t /*length*/);
 
   auto get_n_from_response_stream(std::size_t n);
+  void append_n_data_from_response_stream(std::size_t n);
 
 private:
   void log_error(const boost::system::error_code &error_code);
@@ -135,6 +168,11 @@ private:
   std::size_t content_length_;
   std::size_t chunk_data_left_;
   std::size_t chunk_size_;
+
+
+  observer_ptr<boost::asio::streambuf> output_buffer_;
+  observer_ptr<boost::asio::streambuf> error_buffer_;
+  bool use_output_streams_;
 
   const std::size_t CRLF = 2;
 };
