@@ -46,8 +46,11 @@ template <typename T> std::string DockerClient<T>::getInfo()
 }
 template <typename T>
 auto DockerClient<T>::createContainer(const std::string &image_name,
-                                      const std::vector<std::string> &commands)
+                                      const std::vector<std::string> &commands,
+                                      const std::vector<std::string> &binds)
 {
+
+  binds.size();
   json container = {{"Hostname", ""},
                     {"User", ""},
                     {"Memory", 0},
@@ -60,10 +63,12 @@ auto DockerClient<T>::createContainer(const std::string &image_name,
                     {"StdinOnce", true},
                     {"Cmd", commands},
                     {"Image", image_name},
+                    {"HostConfig", {{"Binds", binds}}},
                     {
                         "WorkingDir", "",
                     }};
   const auto request_data = container.dump();
+  logger->trace("Container creation JSON: {}", container.dump(4));
   auto response = client->post("/containers/create", request_data);
   logger->info("Create container: {0}", response.dump());
 
@@ -168,7 +173,8 @@ template <typename T> void DockerClient<T>::run()
   auto container = createContainer(
       image_name,
       {"/bin/zsh", "-c",
-       "count=1; repeat 20 { echo $count && sleep 1; (( count++ )) } "});
+       "count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
+      {"/tmp:/home/tmp"});
 
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);

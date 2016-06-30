@@ -40,7 +40,8 @@ public:
   std::string getInfo();
 
   auto createContainer(const std::string &image_name,
-                       const std::vector<std::string> &commands);
+                       const std::vector<std::string> &commands,
+                       const std::vector<std::string> &binds);
   bool startContainer(const Container &container);
   void attachContainer(const Container &container);
   void inspectContainer(const Container &container);
