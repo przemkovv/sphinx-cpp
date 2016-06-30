@@ -33,7 +33,7 @@ int main()
       {
       auto docker =
           Sphinx::Docker::v2::make_docker_client("/var/run/docker.sock");
-      logger->info("Info:\n{} ", docker.getInfo());
+      //logger->info("Info:\n{} ", docker.getInfo());
       // logger->info("Containers:\n{} ", docker.getContainers());
       // logger->info("Containers:\n{} ", docker.getContainers());
       docker.run();
