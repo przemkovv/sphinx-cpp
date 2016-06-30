@@ -6,10 +6,10 @@
 #include "HTTPCommon.h"
 #include <fmt/format.h>
 
+#include <boost/filesystem.hpp>
 #include <chrono>
 #include <future>
 #include <thread>
-#include <boost/filesystem.hpp>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
@@ -110,7 +110,6 @@ bool DockerClient<T>::startContainer(const Container &container)
 #pragma clang diagnostic pop
 }
 
-
 template <typename T>
 void DockerClient<T>::attachContainer(const Container &container)
 {
@@ -122,14 +121,12 @@ void DockerClient<T>::attachContainer(const Container &container)
   client->set_error_stream(&error);
   client->use_output_streams(true);
 
-  std::istream output_stream(&output);
-
   auto response = while_do(
       [&]() {
         return client->post(request, "", {{"Upgrade", "tcp"}});
       },
       [&]() {
-        std::string data{std::istreambuf_iterator<char>(output_stream), {}};
+        std::string data{std::istreambuf_iterator<char>(&output), {}};
         if (!data.empty()) {
           logger->info("Attach container: {0}", data);
         }
@@ -176,16 +173,15 @@ void DockerClient<T>::deleteContainer(const Container &container)
 
 template <typename T> void DockerClient<T>::run()
 {
-  //auto container = createContainer(
-      //image_name,
-      //{"/bin/zsh", "-c",
-       //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
-      //{"/tmp:/home/tmp"});
+  // auto container = createContainer(
+  // image_name,
+  //{"/bin/zsh", "-c",
+  //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
+  //{"/tmp:/home/tmp"});
 
   auto mount_dir = fs::canonical("../data/test_sandbox");
   auto container = createContainer(
-      image_name,
-      {"/home/sandbox/main"},
+      image_name, {"/home/sandbox/main"},
       //{"g++", "main.cpp"},
       {fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")});
 
@@ -193,9 +189,9 @@ template <typename T> void DockerClient<T>::run()
   // inspectContainer(container);
   startContainer(container);
   attachContainer(container);
-  //inspectContainer(container);
+  // inspectContainer(container);
   deleteContainer(container);
-  //inspectContainer(container);
+  // inspectContainer(container);
   // getContainers();
   // 1. Create the container
   // 2. If the status code is 404, it means the image doesn’t exist:
