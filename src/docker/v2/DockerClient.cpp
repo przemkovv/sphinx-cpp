@@ -103,18 +103,6 @@ bool DockerClient<T>::startContainer(const Container &container)
 #pragma clang diagnostic pop
 }
 
-template <typename Task1, typename Task2>
-auto while_do(const Task1 &task_while, const Task2 &task_do) {
-
-  auto future = std::async(std::launch::async, task_while);
-  std::future_status status;
-  do {
-    task_do();
-    status = future.wait_for(std::chrono::milliseconds(5));
-  } while (status != std::future_status::ready);
-
-  return future.get();
-}
 
 template <typename T>
 void DockerClient<T>::attachContainer(const Container &container)
@@ -129,15 +117,16 @@ void DockerClient<T>::attachContainer(const Container &container)
 
   std::istream output_stream(&output);
 
-  auto response = while_do([&]() {
-    return client->post(request, "", {{"Upgrade", "tcp"}});
-  },
-  [&]() {
-    std::string data{std::istreambuf_iterator<char>(output_stream), {}};
-    if (!data.empty()) {
-      logger->info("Attach container: {0}", data);
-    }
-    });
+  auto response = while_do(
+      [&]() {
+        return client->post(request, "", {{"Upgrade", "tcp"}});
+      },
+      [&]() {
+        std::string data{std::istreambuf_iterator<char>(output_stream), {}};
+        if (!data.empty()) {
+          logger->info("Attach container: {0}", data);
+        }
+      });
 
   client->use_output_streams(false);
 }
