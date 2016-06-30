@@ -61,6 +61,8 @@ auto while_do(const Task1 &task_while, const Task2 &task_do)
     status = future.wait_for(std::chrono::milliseconds(5));
   } while (status != std::future_status::ready);
 
+  task_do();
+
   return future.get();
 }
 
