@@ -9,8 +9,8 @@
 #include <boost/asio.hpp>
 #include <string>
 
-#include <memory>
 #include <experimental/memory>
+#include <memory>
 #include <stdexcept>
 
 #include "utils.h"
@@ -43,31 +43,26 @@ public:
   }
 };
 
-struct stdio_buffers {
-  boost::asio::streambuf in;
-  boost::asio::streambuf out;
-  boost::asio::streambuf err;
-};
-
 template <typename T>
 class HTTPClient : public std::enable_shared_from_this<HTTPClient<T>> {
 
   using Socket = T;
 
-  template<typename W>
-  using observer_ptr = std::experimental::observer_ptr<W>;
+  template <typename W> using observer_ptr = std::experimental::observer_ptr<W>;
 
 public:
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, TCPSocket>::value>>
   explicit HTTPClient(const std::string &address, unsigned short port)
-    : endpoint_(boost::asio::ip::address::from_string(address), port), use_output_streams_(false)
+    : endpoint_(boost::asio::ip::address::from_string(address), port),
+      use_output_streams_(false)
   {
   }
 
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, UnixSocket>::value>>
-  explicit HTTPClient(const std::string &socket_path) : endpoint_(socket_path), use_output_streams_(false)
+  explicit HTTPClient(const std::string &socket_path)
+    : endpoint_(socket_path), use_output_streams_(false)
   {
   }
 
@@ -89,23 +84,24 @@ public:
                    const std::string &data = "",
                    const HTTPHeaders &headers = {});
 
-  void set_output_stream(observer_ptr<boost::asio::streambuf> streambuf) {
-    output_buffer_ = streambuf;
+  void set_output_stream(boost::asio::streambuf* streambuf)
+  {
+    output_buffer_ = std::experimental::make_observer(streambuf);
   }
-  void set_error_stream(observer_ptr<boost::asio::streambuf> streambuf) {
-    error_buffer_ = streambuf;
-
+  void set_error_stream(boost::asio::streambuf* streambuf)
+  {
+    error_buffer_ = std::experimental::make_observer(streambuf);
   }
-  void use_output_streams(bool use) {
-    assert(error_buffer_.get() != nullptr);
-    assert(output_buffer_.get() != nullptr);
-
+  void use_output_streams(bool use)
+  {
+    if (use) {
+      assert(error_buffer_.get() != nullptr);
+      assert(output_buffer_.get() != nullptr);
+    }
     use_output_streams_ = use;
   }
-  
 
 private:
-
   void prepare_request(const HTTPRequest &request);
   void prepare_response();
   void async_connect();
@@ -127,7 +123,7 @@ private:
   void handle_read_docker_raw_stream_data(
       const boost::system::error_code &error_code,
       std::size_t /*length*/,
-      StreamType /*stream_type*/,
+      const StreamType &stream_type,
       std::size_t data_size);
 
   void receive_text();
@@ -142,7 +138,10 @@ private:
                            std::size_t /*length*/);
 
   auto get_n_from_response_stream(std::size_t n);
-  void append_n_data_from_response_stream(std::size_t n);
+
+  void forward_data_to_stream(const std::size_t &n,
+                              const StreamType &stream_type);
+  void forward_data_to_response_data(const std::size_t &n);
 
 private:
   void log_error(const boost::system::error_code &error_code);
@@ -169,10 +168,22 @@ private:
   std::size_t chunk_data_left_;
   std::size_t chunk_size_;
 
-
   observer_ptr<boost::asio::streambuf> output_buffer_;
   observer_ptr<boost::asio::streambuf> error_buffer_;
+  observer_ptr<boost::asio::streambuf> input_buffer_;
   bool use_output_streams_;
+
+  auto get_stream(const StreamType &stream_type) const
+  {
+    switch (stream_type) {
+    case StreamType::stdin:
+      return input_buffer_.get();
+    case StreamType::stdout:
+      return output_buffer_.get();
+    case StreamType::stderr:
+      return error_buffer_.get();
+    }
+  }
 
   const std::size_t CRLF = 2;
 };

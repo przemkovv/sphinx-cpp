@@ -152,6 +152,8 @@ void HTTPClient<T>::handle_read_headers(
   std::string headers = get_n_from_response_stream(length);
   http_response_.parse_headers(headers);
 
+  logger_response->trace(">>{0}<<", http_response_.to_string());
+
   auto content_type = http_response_.headers().get_content_type();
   if (boost::starts_with(content_type, "application/json") ||
       boost::starts_with(content_type, "text/plain")) {
@@ -229,7 +231,7 @@ template <typename T>
 void HTTPClient<T>::handle_read_docker_raw_stream_data(
     const boost::system::error_code &error_code,
     std::size_t /*length*/,
-    StreamType /*stream_type*/,
+    const StreamType &stream_type,
     std::size_t data_size)
 {
 
@@ -241,9 +243,12 @@ void HTTPClient<T>::handle_read_docker_raw_stream_data(
     return;
   }
 
-  auto data = get_n_from_response_stream(data_size);
-  http_response_.append_data(data);
-  logger_response->trace(">>{0}<<", data);
+  if (use_output_streams_) {
+    forward_data_to_stream(data_size, stream_type);
+  }
+  else {
+    forward_data_to_response_data(data_size);
+  }
 
   if (!is_eof || response_buffer_.size() != 0) {
     async_read_docker_raw_stream_header();
@@ -276,7 +281,12 @@ template <typename T>
 void HTTPClient<T>::handle_read_chunk_begin(
     const boost::system::error_code &error_code, std::size_t length)
 {
-  if (error_code) {
+  bool is_eof = error_code == boost::asio::error::eof;
+
+  if (is_eof) {
+    assert(response_buffer_.size() == 0);
+    return;
+  } else if (error_code) {
     log_error(error_code);
     return;
   }
@@ -323,44 +333,16 @@ void HTTPClient<T>::handle_read_chunk_data(
   }
   else {
     content_length_ += chunk_size_;
-    auto data = get_n_from_response_stream(chunk_size_);
-    http_response_.append_data(data);
+    if (use_output_streams_) {
+      forward_data_to_stream(chunk_size_, StreamType::stdout);
+    }
+    else {
+      forward_data_to_response_data(chunk_size_);
+    }
     get_n_from_response_stream(CRLF); // consume CRLF
 
     async_read_chunk_begin();
   }
-}
-
-template <typename T>
-void HTTPClient<T>::append_n_data_from_response_stream(std::size_t n)
-{
-  assert(response_buffer_.size() >= n);
-  if (n > 0) {
-    std::istream response_stream(&response_buffer_);
-    std::ostream output_stream(output_buffer_.get());
-    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
-                std::ostream_iterator<char>(output_stream));
-
-    response_stream.ignore(1);
-  }
-}
-template <typename T>
-auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
-{
-  assert(response_buffer_.size() >= n);
-  std::string data;
-  data.reserve(n);
-  if (n > 0) {
-    std::istream response_stream(&response_buffer_);
-    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
-                std::back_inserter(data));
-
-    // discard the last element since copy_n wont increase the iterator after
-    // reading the last one (see
-    // http://cplusplus.github.io/LWG/lwg-active.html#2471 )
-    response_stream.ignore(1);
-  }
-  return data;
 }
 
 template <typename T>
@@ -386,13 +368,58 @@ void HTTPClient<T>::handle_read_content(
   }
 
   if (response_buffer_.size() >= content_length_) {
-    http_response_.append_data(get_n_from_response_stream(content_length_));
+    if (use_output_streams_) {
+      forward_data_to_stream(content_length_, StreamType::stdout);
+    }
+    else {
+      forward_data_to_response_data(content_length_);
+    }
     content_data_left_ = 0;
   }
   else {
     content_data_left_ = content_length_ - response_buffer_.size();
     async_read_content(content_data_left_);
   }
+}
+
+template <typename T>
+void HTTPClient<T>::forward_data_to_response_data(const std::size_t &n)
+{
+  auto data = get_n_from_response_stream(n);
+  http_response_.append_data(data);
+}
+
+template <typename T>
+void HTTPClient<T>::forward_data_to_stream(const std::size_t &n,
+                                           const StreamType &stream_type)
+{
+  assert(response_buffer_.size() >= n);
+  if (n > 0) {
+    std::istream response_stream(&response_buffer_);
+    std::ostream output_stream(get_stream(stream_type));
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
+                std::ostream_iterator<char>(output_stream));
+
+    response_stream.ignore(1);
+  }
+}
+template <typename T>
+auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
+{
+  assert(response_buffer_.size() >= n);
+  std::string data;
+  data.reserve(n);
+  if (n > 0) {
+    std::istream response_stream(&response_buffer_);
+    std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
+                std::back_inserter(data));
+
+    // discard the last element since copy_n wont increase the iterator after
+    // reading the last one (see
+    // http://cplusplus.github.io/LWG/lwg-active.html#2471 )
+    response_stream.ignore(1);
+  }
+  return data;
 }
 
 template class HTTPClient<TCPSocket>;

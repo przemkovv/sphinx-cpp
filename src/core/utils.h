@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <string>
+#include <future>
 
 namespace Sphinx {
 
@@ -47,6 +48,20 @@ template<class T, class...Args >
 std::shared_ptr<std::unique_ptr<T>> make_shared_unique_from_unique(std::unique_ptr<T> ptr)
 {
   return std::make_shared<std::unique_ptr<T>>(ptr);
+}
+
+template <typename Task1, typename Task2>
+auto while_do(const Task1 &task_while, const Task2 &task_do)
+{
+
+  auto future = std::async(std::launch::async, task_while);
+  std::future_status status;
+  do {
+    task_do();
+    status = future.wait_for(std::chrono::milliseconds(5));
+  } while (status != std::future_status::ready);
+
+  return future.get();
 }
 
 std::string escape_control_characters(const std::string &input);
