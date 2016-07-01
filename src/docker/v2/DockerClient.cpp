@@ -28,26 +28,26 @@ namespace v2 {
 using json = nlohmann::json;
 namespace fs = boost::filesystem;
 
-template <typename T> std::string DockerClient<T>::getImages()
+template <typename T> std::string DockerClient<T>::list_images()
 {
   auto data = client->get("/images/json?all=1").data();
   auto images = json::parse(data);
   return images.dump(4);
 }
-template <typename T> std::string DockerClient<T>::getContainers()
+template <typename T> std::string DockerClient<T>::list_containers()
 {
   auto data = client->get("/containers/json?all=1&size=1").data();
   auto containers = json::parse(data);
   return containers.dump(4);
 }
-template <typename T> std::string DockerClient<T>::getInfo()
+template <typename T> std::string DockerClient<T>::get_info()
 {
   auto data = client->get("/info").data();
   auto j1 = json::parse(data);
   return j1.dump(4);
 }
 template <typename T>
-auto DockerClient<T>::createContainer(const std::string &image_name,
+auto DockerClient<T>::create_container(const std::string &image_name,
                                       const std::vector<std::string> &commands,
                                       const std::vector<std::string> &binds)
 {
@@ -66,9 +66,7 @@ auto DockerClient<T>::createContainer(const std::string &image_name,
                     {"Cmd", commands},
                     {"Image", image_name},
                     {"HostConfig", {{"Binds", binds}}},
-                    {
-                        "WorkingDir", "/home/sandbox",
-                    }};
+                    {"WorkingDir", "/home/sandbox"}};
   const auto request_data = container.dump();
   logger->trace("Container creation JSON: {}", container.dump(4));
   auto response = client->post("/containers/create", request_data);
@@ -83,7 +81,7 @@ auto DockerClient<T>::createContainer(const std::string &image_name,
 }
 
 template <typename T>
-bool DockerClient<T>::startContainer(const Container &container)
+bool DockerClient<T>::start_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/start", container.id);
   auto response = client->post(request);
@@ -111,7 +109,7 @@ bool DockerClient<T>::startContainer(const Container &container)
 }
 
 template <typename T>
-void DockerClient<T>::attachContainer(const Container &container)
+void DockerClient<T>::attach_container(const Container &container)
 {
   auto request = fmt::format(
       "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
@@ -140,7 +138,7 @@ void DockerClient<T>::attachContainer(const Container &container)
 }
 
 template <typename T>
-void DockerClient<T>::inspectContainer(const Container &container)
+void DockerClient<T>::inspect_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}/json", container.id);
   auto response = client->get(query_path);
@@ -157,7 +155,7 @@ void DockerClient<T>::inspectContainer(const Container &container)
   }
 }
 template <typename T>
-void DockerClient<T>::deleteContainer(const Container &container)
+void DockerClient<T>::remove_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}", container.id);
   auto response = client->request(HTTPMethod::DELETE, query_path);
@@ -180,18 +178,19 @@ template <typename T> void DockerClient<T>::run()
   //{"/tmp:/home/tmp"});
 
   auto mount_dir = fs::canonical("../data/test_sandbox");
-  auto container = createContainer(
-      image_name, {"/home/sandbox/main"},
+  auto container = create_container(
+      image_name,
+      {"/home/sandbox/main"},
       //{"g++", "main.cpp"},
       {fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")});
 
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
-  startContainer(container);
-  attachContainer(container);
-  // inspectContainer(container);
-  deleteContainer(container);
-  // inspectContainer(container);
+  start_container(container);
+  attach_container(container);
+  // inspect_container(container);
+  remove_container(container);
+  // inspect_container(container);
   // getContainers();
   // 1. Create the container
   // 2. If the status code is 404, it means the image doesn’t exist:

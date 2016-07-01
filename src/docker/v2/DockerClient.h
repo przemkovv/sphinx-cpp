@@ -35,17 +35,17 @@ public:
   {
   }
 
-  std::string getImages();
-  std::string getContainers();
-  std::string getInfo();
+  std::string list_images();
+  std::string list_containers();
+  std::string get_info();
 
-  auto createContainer(const std::string &image_name,
+  auto create_container(const std::string &image_name,
                        const std::vector<std::string> &commands,
                        const std::vector<std::string> &binds);
-  bool startContainer(const Container &container);
-  void attachContainer(const Container &container);
-  void inspectContainer(const Container &container);
-  void deleteContainer(const Container &container);
+  bool start_container(const Container &container);
+  void attach_container(const Container &container);
+  void inspect_container(const Container &container);
+  void remove_container(const Container &container);
   void run();
 };
 
