@@ -11,16 +11,6 @@
 #include <future>
 #include <thread>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
-#pragma clang diagnostic ignored "-Wdocumentation"
-#pragma clang diagnostic ignored "-Wswitch-enum"
-#pragma clang diagnostic ignored "-Wcovered-switch-default"
-
-#include "json.hpp"
-
-#pragma clang diagnostic pop
-
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
@@ -28,31 +18,31 @@ namespace v2 {
 using json = nlohmann::json;
 namespace fs = boost::filesystem;
 
-template <typename T> std::string DockerClient<T>::list_images()
+template <typename T> ResultJSON DockerClient<T>::list_images()
 {
-  auto data = client->get("/images/json?all=1").data();
-  auto images = json::parse(data);
-  return images.dump(4);
+  auto response = client->get("/images/json?all=1");
+  auto images = json::parse(response.data());
+  return {response.status(), images};
 }
-template <typename T> std::string DockerClient<T>::list_containers()
+template <typename T> ResultJSON DockerClient<T>::list_containers()
 {
-  auto data = client->get("/containers/json?all=1&size=1").data();
-  auto containers = json::parse(data);
-  return containers.dump(4);
+  auto response = client->get("/containers/json?all=1&size=1");
+  auto containers = json::parse(response.data());
+  return {response.status(), containers};
 }
-template <typename T> std::string DockerClient<T>::get_info()
+template <typename T> ResultJSON DockerClient<T>::get_info()
 {
-  auto data = client->get("/info").data();
-  auto j1 = json::parse(data);
-  return j1.dump(4);
+  auto response = client->get("/info");
+  auto info = json::parse(response.data());
+  return {response.status(), info};
 }
 template <typename T>
-auto DockerClient<T>::create_container(const std::string &image_name,
-                                      const std::vector<std::string> &commands,
-                                      const std::vector<std::string> &binds)
+ResultJSON
+DockerClient<T>::create_container(const std::string &image_name,
+                                  const std::vector<std::string> &commands,
+                                  const std::vector<std::string> &binds)
 {
 
-  binds.size();
   json container = {{"Hostname", ""},
                     {"User", ""},
                     {"Memory", 0},
@@ -68,14 +58,13 @@ auto DockerClient<T>::create_container(const std::string &image_name,
                     {"HostConfig", {{"Binds", binds}}},
                     {"WorkingDir", "/home/sandbox"}};
   const auto request_data = container.dump();
-  logger->trace("Container creation JSON: {}", container.dump(4));
+  logger->debug("Container creation JSON: {}", container.dump(4));
   auto response = client->post("/containers/create", request_data);
-  logger->info("Create container: {0}", response.dump());
+  logger->debug("Create container: {0}", response.dump());
 
   if (response.status() == HTTPStatus::CREATED) {
     auto data_json = json::parse(response.data());
-    Container container{data_json["Id"]};
-    return container;
+    return {response.status(), data_json};
   }
   throw cannot_create_container_exception{response};
 }
@@ -85,7 +74,7 @@ bool DockerClient<T>::start_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/start", container.id);
   auto response = client->post(request);
-  logger->info("Start container: {0}", response.dump());
+  logger->debug("Start container: {0}", response.dump());
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch-enum"
   switch (response.status()) {
@@ -109,7 +98,8 @@ bool DockerClient<T>::start_container(const Container &container)
 }
 
 template <typename T>
-void DockerClient<T>::attach_container(const Container &container)
+Result<std::string, std::string>
+DockerClient<T>::attach_container(const Container &container)
 {
   auto request = fmt::format(
       "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
@@ -124,48 +114,46 @@ void DockerClient<T>::attach_container(const Container &container)
         return client->post(request, "", {{"Upgrade", "tcp"}});
       },
       [&]() {
-        std::string data{std::istreambuf_iterator<char>(&output), {}};
-        if (!data.empty()) {
-          logger->info("Attach container: {0}", data);
-        }
-        std::string data_error{std::istreambuf_iterator<char>(&error), {}};
-        if (!data_error.empty()) {
-          logger->error("Attach container: {0}", data_error);
-        }
+        // std::string data{std::istreambuf_iterator<char>(&output), {}};
+        // if (!data.empty()) {
+        // logger->info("Attach container: {0}", data);
+        //}
+        // std::string data_error{std::istreambuf_iterator<char>(&error), {}};
+        // if (!data_error.empty()) {
+        // logger->error("Attach container: {0}", data_error);
+        //}
       });
 
+  std::string data_error{std::istreambuf_iterator<char>(&error), {}};
+  std::string data{std::istreambuf_iterator<char>(&output), {}};
+  logger->debug("Attach container: {0}", data);
+  logger->debug("Attach container (error): {0}", data_error);
   client->use_output_streams(false);
+  return {response.status(), data, data_error};
 }
 
 template <typename T>
-void DockerClient<T>::inspect_container(const Container &container)
+ResultJSON DockerClient<T>::inspect_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}/json", container.id);
   auto response = client->get(query_path);
 
-  if (response.status() == HTTPStatus::OK) {
-    auto data = json::parse(response.data());
-    logger->info("Inspect container: {0}", data.dump(2));
-  }
-  else {
-    logger->info(
-        "Inspecting container: {0} failed (status code: {1} {2}).\nData: {3}",
-        container.id, static_cast<uint32_t>(response.status()),
-        response.status_message(), response.data());
-  }
+  auto data = json::parse(response.data());
+  logger->debug("Inspect container: {0}", data.dump(2));
+  return {response.status(), data};
 }
 template <typename T>
-void DockerClient<T>::remove_container(const Container &container)
+ResultJSON DockerClient<T>::remove_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}", container.id);
   auto response = client->request(HTTPMethod::DELETE, query_path);
-  if (response.status() == HTTPStatus::NO_CONTENT) {
-    logger->info("Removed container: {0}", container.id);
+  logger->debug("Remove container: {0}", container.id);
+  if (response.data().empty()) {
+    return {response.status(), json{}};
   }
   else {
-    logger->info("Removing container: {0} failed (status code: {1} {2}).",
-                 container.id, static_cast<uint32_t>(response.status()),
-                 response.status_message());
+    auto data = json::parse(response.data());
+    return {response.status(), data};
   }
 }
 
@@ -178,17 +166,20 @@ template <typename T> void DockerClient<T>::run()
   //{"/tmp:/home/tmp"});
 
   auto mount_dir = fs::canonical("../data/test_sandbox");
-  auto container = create_container(
+  auto container_json = std::get<1>(create_container(
       image_name,
-      {"/home/sandbox/main"},
+      {"/bin/zsh", "-c",
+       "count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
+      //{"/home/sandbox/main"},
       //{"g++", "main.cpp"},
-      {fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")});
+      {fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")}));
 
+  Container container{container_json["Id"]};
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
   start_container(container);
   attach_container(container);
-  // inspect_container(container);
+   inspect_container(container);
   remove_container(container);
   // inspect_container(container);
   // getContainers();
