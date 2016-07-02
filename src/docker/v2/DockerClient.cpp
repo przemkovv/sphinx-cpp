@@ -6,7 +6,6 @@
 #include "HTTPCommon.h"
 #include <fmt/format.h>
 
-#include <boost/filesystem.hpp>
 #include <chrono>
 #include <future>
 #include <thread>
@@ -44,11 +43,19 @@ template <typename T> ResultJSON DockerClient<T>::get_info()
   return {status, info};
 }
 template <typename T>
-ResultJSON
-DockerClient<T>::create_container(const std::string &image_name,
-                                  const std::vector<std::string> &commands,
-                                  const std::vector<std::string> &binds)
+ResultJSON DockerClient<T>::create_container(
+    const std::string &image_name,
+    const std::vector<std::string> &commands,
+    const fs::path &working_dir,
+    const std::vector<std::pair<fs::path, fs::path>> &mounting_points)
 {
+
+  std::vector<std::string> binds;
+  std::transform(std::begin(mounting_points), std::end(mounting_points),
+                 std::back_inserter(binds), [](const auto &p) {
+                   return fmt::format("{0}:{1}", p.first.string(),
+                                      p.second.string());
+                 });
 
   json container = {{"Hostname", ""},
                     {"User", ""},
@@ -63,7 +70,7 @@ DockerClient<T>::create_container(const std::string &image_name,
                     {"Cmd", commands},
                     {"Image", image_name},
                     {"HostConfig", {{"Binds", binds}}},
-                    {"WorkingDir", "/home/sandbox"}};
+                    {"WorkingDir", working_dir.string()}};
   const auto request_data = container.dump();
   logger->debug("Container creation JSON: {}", container.dump(4));
   auto response = client->post("/containers/create", request_data);
@@ -243,16 +250,18 @@ template <typename T> void DockerClient<T>::run()
   //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
   //{"/tmp:/home/tmp"});
 
+  auto working_dir = fs::path("/home/sandbox");
   auto mount_dir = fs::canonical("../data/test_sandbox");
-  auto container_json = std::get<1>(create_container(
+  auto create_result = create_container(
       image_name,
-      {"/bin/zsh", "-c",
-       "count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
-      //{"/home/sandbox/main"},
+      //{"/bin/zsh", "-c",
+       //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
+      {"./main"},
       //{"g++", "main.cpp"},
-      {fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")}));
+      working_dir, {std::make_pair(mount_dir, working_dir)});
+  //{fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")}));
 
-  Container container{container_json["Id"]};
+  Container container{std::get<1>(create_result)["Id"]};
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
   auto start_result = start_container(container);

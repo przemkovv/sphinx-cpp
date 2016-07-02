@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 namespace Sphinx {
 namespace Docker {
 namespace v2 {
@@ -63,14 +65,16 @@ public:
   ResultJSON list_containers();
   ResultJSON get_info();
 
-  ResultJSON create_container(const std::string &image_name,
-                              const std::vector<std::string> &commands,
-                              const std::vector<std::string> &binds);
+  ResultJSON create_container(
+      const std::string &image_name,
+      const std::vector<std::string> &commands,
+      const boost::filesystem::path &working_dir,
+      const std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> &mounting_points);
   ResultJSON start_container(const Container &container);
   Result<std::string, std::string> attach_container(const Container &container);
   ResultJSON inspect_container(const Container &container);
   ResultJSON remove_container(const Container &container);
-  ResultJSON stop_container(const Container& container, unsigned int wait_time);
+  ResultJSON stop_container(const Container &container, unsigned int wait_time);
   void run();
 
 private:
