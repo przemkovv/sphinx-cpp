@@ -96,6 +96,32 @@ ResultJSON DockerClient<T>::create_container(
 }
 
 template <typename T>
+ResultJSON DockerClient<T>::wait_container(const Container &container)
+{
+  auto request = fmt::format("/containers/{0}/wait", container.id);
+  auto response = client->post(request);
+  logger->debug("Waiting for the container: {0}", response.dump());
+
+  auto status = DockerStatus::UndefiniedError;
+  if (response.status() == HTTPStatus::OK) {
+    status = DockerStatus::NoError;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+
+  if (response.data().empty()) {
+    return {status, json{}};
+  }
+  else {
+    return {status, json::parse(response.data())};
+  }
+}
+
+template <typename T>
 ResultJSON DockerClient<T>::start_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/start", container.id);
@@ -242,6 +268,34 @@ ResultJSON DockerClient<T>::stop_container(const Container &container,
     return {status, json::parse(response.data())};
   }
 }
+template <typename T>
+std::tuple<std::string, std::string, int>
+DockerClient<T>::run_command_in_mounted_dir(const std::vector<std::string> &cmd,
+                                            const fs::path &mount_dir)
+{
+  auto working_dir = fs::path("/home/sandbox");
+  auto create_result = create_container(
+      image_name, cmd, working_dir, {std::make_pair(mount_dir, working_dir)});
+
+  Container container{std::get<1>(create_result)["Id"]};
+  SCOPE_EXIT(throw_if_error(remove_container(container)));
+
+  auto start_result = start_container(container);
+  if (!throw_if_error(start_result)) {
+
+    auto attach_result = attach_container(container);
+    throw_if_error(attach_result);
+
+    auto wait_result = wait_container(container);
+    throw_if_error(wait_result);
+
+    int exit_code = std::get<1>(wait_result)["StatusCode"];
+
+    return {std::get<1>(attach_result), std::get<2>(attach_result), exit_code};
+  }
+  return {};
+}
+
 template <typename T> void DockerClient<T>::run()
 {
   // auto container = createContainer(
@@ -255,7 +309,7 @@ template <typename T> void DockerClient<T>::run()
   auto create_result = create_container(
       image_name,
       //{"/bin/zsh", "-c",
-       //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
+      //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
       {"./main"},
       //{"g++", "main.cpp"},
       working_dir, {std::make_pair(mount_dir, working_dir)});
@@ -295,10 +349,24 @@ std::string DockerClient<T>::get_message_error(const nlohmann::json &data)
 {
   return data["message"];
 }
-template <typename T> bool DockerClient<T>::is_error(const ResultJSON &result)
+template <typename T>
+template <typename... U>
+bool DockerClient<T>::throw_if_error(const Result<U...> &result)
 {
   const auto &status = std::get<0>(result);
-
+  if (status != DockerStatus::NoError) {
+    std::string message = get_message_error(std::get<1>(result));
+    logger->error("Status code: {}, Error message: {}",
+                  static_cast<int>(status), message);
+    throw docker_exception{message};
+  }
+  return false;
+}
+template <typename T>
+template <typename... U>
+bool DockerClient<T>::is_error(const Result<U...> &result)
+{
+  const auto &status = std::get<0>(result);
   if (status != DockerStatus::NoError) {
     logger->error("Status code: {}, Error message: {}",
                   static_cast<int>(status),

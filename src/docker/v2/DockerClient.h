@@ -69,16 +69,23 @@ public:
       const std::string &image_name,
       const std::vector<std::string> &commands,
       const boost::filesystem::path &working_dir,
-      const std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> &mounting_points);
+      const std::vector<std::pair<boost::filesystem::path,
+                                  boost::filesystem::path>> &mounting_points);
   ResultJSON start_container(const Container &container);
   Result<std::string, std::string> attach_container(const Container &container);
   ResultJSON inspect_container(const Container &container);
   ResultJSON remove_container(const Container &container);
   ResultJSON stop_container(const Container &container, unsigned int wait_time);
+  ResultJSON wait_container(const Container &container);
   void run();
 
+  std::tuple<std::string, std::string, int>
+  run_command_in_mounted_dir(const std::vector<std::string> &cmd,
+                             const boost::filesystem::path &mount_dir);
+
 private:
-  bool is_error(const ResultJSON &result);
+  template <typename... U> bool is_error(const Result<U...> &result);
+  template <typename... U> bool throw_if_error(const Result<U...> &result);
   template <typename U> std::string get_message_error(const U &);
   std::string get_message_error(const nlohmann::json &data);
 };

@@ -12,6 +12,13 @@ namespace Docker {
 namespace v2 {
 
 
+class docker_exception : public std::runtime_error {
+public:
+  docker_exception(const std::string &message)
+    : runtime_error(message)
+  {
+  }
+};
 class cannot_create_container_exception : public std::runtime_error {
 public:
   cannot_create_container_exception(const HTTPResponse &response)
