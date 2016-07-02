@@ -77,7 +77,6 @@ public:
   ResultJSON remove_container(const Container &container);
   ResultJSON stop_container(const Container &container, unsigned int wait_time);
   ResultJSON wait_container(const Container &container);
-  void run();
 
   std::tuple<std::string, std::string, int>
   run_command_in_mounted_dir(const std::vector<std::string> &cmd,
@@ -86,7 +85,7 @@ public:
 private:
   template <typename... U> bool is_error(const Result<U...> &result);
   template <typename... U> bool throw_if_error(const Result<U...> &result);
-  template <typename U> std::string get_message_error(const U &);
+  template <typename U> std::string get_message_error(const U &data);
   std::string get_message_error(const nlohmann::json &data);
 };
 

@@ -17,6 +17,9 @@ namespace v2 {
 using json = nlohmann::json;
 namespace fs = boost::filesystem;
 
+// TODO{przemkovv): think about HTTPStatus code unified translation into
+// DockerStatus code
+
 template <typename T> ResultJSON DockerClient<T>::list_images()
 {
   auto response = client->get("/images/json?all=1");
@@ -116,9 +119,7 @@ ResultJSON DockerClient<T>::wait_container(const Container &container)
   if (response.data().empty()) {
     return {status, json{}};
   }
-  else {
-    return {status, json::parse(response.data())};
-  }
+  return {status, json::parse(response.data())};
 }
 
 template <typename T>
@@ -145,9 +146,7 @@ ResultJSON DockerClient<T>::start_container(const Container &container)
   if (response.data().empty()) {
     return {status, json{}};
   }
-  else {
-    return {status, json::parse(response.data())};
-  }
+  return {status, json::parse(response.data())};
 }
 
 template <typename T>
@@ -234,9 +233,7 @@ ResultJSON DockerClient<T>::remove_container(const Container &container)
   if (response.data().empty()) {
     return {status, json{}};
   }
-  else {
-    return {status, json::parse(response.data())};
-  }
+  return {status, json::parse(response.data())};
 }
 
 template <typename T>
@@ -264,9 +261,7 @@ ResultJSON DockerClient<T>::stop_container(const Container &container,
   if (response.data().empty()) {
     return {status, json{}};
   }
-  else {
-    return {status, json::parse(response.data())};
-  }
+  return {status, json::parse(response.data())};
 }
 template <typename T>
 std::tuple<std::string, std::string, int>
@@ -277,70 +272,26 @@ DockerClient<T>::run_command_in_mounted_dir(const std::vector<std::string> &cmd,
   auto create_result = create_container(
       image_name, cmd, working_dir, {std::make_pair(mount_dir, working_dir)});
 
-  Container container{std::get<1>(create_result)["Id"]};
+  Container container{std::get<1>(create_result).at("Id")};
   SCOPE_EXIT(throw_if_error(remove_container(container)));
 
   auto start_result = start_container(container);
-  if (!throw_if_error(start_result)) {
+  throw_if_error(start_result);
 
-    auto attach_result = attach_container(container);
-    throw_if_error(attach_result);
+  auto attach_result = attach_container(container);
+  throw_if_error(attach_result);
 
-    auto wait_result = wait_container(container);
-    throw_if_error(wait_result);
+  auto wait_result = wait_container(container);
+  throw_if_error(wait_result);
 
-    int exit_code = std::get<1>(wait_result)["StatusCode"];
+  int exit_code = std::get<1>(wait_result).at("StatusCode");
 
-    return {std::get<1>(attach_result), std::get<2>(attach_result), exit_code};
-  }
-  return {};
-}
-
-template <typename T> void DockerClient<T>::run()
-{
-  // auto container = createContainer(
-  // image_name,
-  //{"/bin/zsh", "-c",
-  //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
-  //{"/tmp:/home/tmp"});
-
-  auto working_dir = fs::path("/home/sandbox");
-  auto mount_dir = fs::canonical("../data/test_sandbox");
-  auto create_result = create_container(
-      image_name,
-      //{"/bin/zsh", "-c",
-      //"count=1; repeat 2 { echo $count && sleep 1; (( count++ )) } "},
-      {"./main"},
-      //{"g++", "main.cpp"},
-      working_dir, {std::make_pair(mount_dir, working_dir)});
-  //{fmt::format("{}:{}", mount_dir.string(), "/home/sandbox")}));
-
-  Container container{std::get<1>(create_result)["Id"]};
-  // auto container = createContainer(image_name, {"date"});
-  // inspectContainer(container);
-  auto start_result = start_container(container);
-  if (!is_error(start_result)) {
-    attach_container(container);
-    inspect_container(container);
-    remove_container(container);
-  }
-  // inspect_container(container);
-  // getContainers();
-  // 1. Create the container
-  // 2. If the status code is 404, it means the image doesn’t exist:
-  //    a. Try to pull it.
-  //    b. Then, retry to create the container.
-  // 3. Start the container.
-  // 4. If you are not in detached mode:
-  // 5. Attach to the container, using logs=1 (to have stdout and stderr from
-  // the container’s start) and stream=1
-  // 6. If in detached mode or only stdin is attached, display the container’s
-  // id.
+  return {std::get<1>(attach_result), std::get<2>(attach_result), exit_code};
 }
 
 template <typename T>
 template <typename U>
-std::string DockerClient<T>::get_message_error(const U &)
+std::string DockerClient<T>::get_message_error(const U & /*data*/)
 {
   return {};
 }
