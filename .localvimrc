@@ -21,4 +21,4 @@ let g:cmake_set_makeprg = 1
 let g:neomake_cpp_clangtidy_args = ['-p=build/', 
                                   \ '--checks=*', 
                                   \ '--header-filter="(?!pprint.hpp|?!json.hpp).*"',
-                                  \ '--export-fixes=".clang-tidy-fixes"']
+                                  \ '--export-fixes=.clang-tidy-fixes']
