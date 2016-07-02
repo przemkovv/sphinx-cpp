@@ -22,7 +22,18 @@ namespace Sphinx {
 namespace Docker {
 namespace v2 {
 
-template <typename... T> using Result = std::tuple<HTTPStatus, T...>;
+enum class DockerStatus {
+  NoError = 0,
+  BadParameter,
+  ServerError,
+  NoSuchContainer,
+  ImpossibleToAttach,
+  ContainerAlreadyStarted,
+  ContainerAlreadyStopped,
+  UndefiniedError
+};
+
+template <typename... T> using Result = std::tuple<DockerStatus, T...>;
 using ResultJSON = Result<nlohmann::json>;
 
 template <typename T = UnixSocket> class DockerClient {
@@ -53,13 +64,19 @@ public:
   ResultJSON get_info();
 
   ResultJSON create_container(const std::string &image_name,
-                        const std::vector<std::string> &commands,
-                        const std::vector<std::string> &binds);
-  bool start_container(const Container &container);
+                              const std::vector<std::string> &commands,
+                              const std::vector<std::string> &binds);
+  ResultJSON start_container(const Container &container);
   Result<std::string, std::string> attach_container(const Container &container);
   ResultJSON inspect_container(const Container &container);
   ResultJSON remove_container(const Container &container);
+  ResultJSON stop_container(const Container& container, unsigned int wait_time);
   void run();
+
+private:
+  bool is_error(const ResultJSON &result);
+  template <typename U> std::string get_message_error(const U &);
+  std::string get_message_error(const nlohmann::json &data);
 };
 
 inline auto make_docker_client(const std::string &address, unsigned short port)

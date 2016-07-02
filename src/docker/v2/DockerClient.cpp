@@ -22,19 +22,26 @@ template <typename T> ResultJSON DockerClient<T>::list_images()
 {
   auto response = client->get("/images/json?all=1");
   auto images = json::parse(response.data());
-  return {response.status(), images};
+
+  return {DockerStatus::NoError, images};
 }
 template <typename T> ResultJSON DockerClient<T>::list_containers()
 {
   auto response = client->get("/containers/json?all=1&size=1");
   auto containers = json::parse(response.data());
-  return {response.status(), containers};
+
+  return {DockerStatus::NoError, containers};
 }
 template <typename T> ResultJSON DockerClient<T>::get_info()
 {
   auto response = client->get("/info");
   auto info = json::parse(response.data());
-  return {response.status(), info};
+
+  auto status = DockerStatus::NoError;
+  if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+  return {status, info};
 }
 template <typename T>
 ResultJSON
@@ -62,39 +69,52 @@ DockerClient<T>::create_container(const std::string &image_name,
   auto response = client->post("/containers/create", request_data);
   logger->debug("Create container: {0}", response.dump());
 
+  auto status = DockerStatus::UndefiniedError;
   if (response.status() == HTTPStatus::CREATED) {
-    auto data_json = json::parse(response.data());
-    return {response.status(), data_json};
+    status = DockerStatus::NoError;
   }
-  throw cannot_create_container_exception{response};
+  else if (response.status() == HTTPStatus::BAD_REQUEST) {
+    status = DockerStatus::BadParameter;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::NOT_ACCEPTABLE) {
+    status = DockerStatus::ImpossibleToAttach;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+  return {status, json::parse(response.data())};
 }
 
 template <typename T>
-bool DockerClient<T>::start_container(const Container &container)
+ResultJSON DockerClient<T>::start_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/start", container.id);
   auto response = client->post(request);
   logger->debug("Start container: {0}", response.dump());
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch-enum"
-  switch (response.status()) {
-  case HTTPStatus::NOT_FOUND: {
-    throw container_doesnt_exist_exception{container};
+
+  auto status = DockerStatus::UndefiniedError;
+  if (response.status() == HTTPStatus::NO_CONTENT) {
+    status = DockerStatus::NoError;
+  }
+  else if (response.status() == HTTPStatus::SEE_OTHER) {
+    status = DockerStatus::ContainerAlreadyStarted;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
   }
 
-  case HTTPStatus::SERVER_ERROR: {
-    throw server_error{response};
+  if (response.data().empty()) {
+    return {status, json{}};
   }
-
-  case HTTPStatus::NOT_MODIFIED:
-  case HTTPStatus::NO_CONTENT: {
-    return true;
+  else {
+    return {status, json::parse(response.data())};
   }
-
-  default:
-    throw undefined_error{response};
-  }
-#pragma clang diagnostic pop
 }
 
 template <typename T>
@@ -113,23 +133,32 @@ DockerClient<T>::attach_container(const Container &container)
       [&]() {
         return client->post(request, "", {{"Upgrade", "tcp"}});
       },
-      [&]() {
-        // std::string data{std::istreambuf_iterator<char>(&output), {}};
-        // if (!data.empty()) {
-        // logger->info("Attach container: {0}", data);
-        //}
-        // std::string data_error{std::istreambuf_iterator<char>(&error), {}};
-        // if (!data_error.empty()) {
-        // logger->error("Attach container: {0}", data_error);
-        //}
-      });
+      [&]() {});
 
   std::string data_error{std::istreambuf_iterator<char>(&error), {}};
   std::string data{std::istreambuf_iterator<char>(&output), {}};
   logger->debug("Attach container: {0}", data);
   logger->debug("Attach container (error): {0}", data_error);
   client->use_output_streams(false);
-  return {response.status(), data, data_error};
+
+  auto status = DockerStatus::UndefiniedError;
+  if (response.status() == HTTPStatus::SWITCHING_PROTOCOLS ||
+      response.status() == HTTPStatus::OK) {
+    status = DockerStatus::NoError;
+  }
+  else if (response.status() == HTTPStatus::BAD_REQUEST) {
+    status = DockerStatus::BadParameter;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+
+  // TODO(przemkovv): what to do if we had an error? How to transfer a received
+  // error message?
+  return {status, data, data_error};
 }
 
 template <typename T>
@@ -138,9 +167,16 @@ ResultJSON DockerClient<T>::inspect_container(const Container &container)
   auto query_path = fmt::format("/containers/{0}/json", container.id);
   auto response = client->get(query_path);
 
-  auto data = json::parse(response.data());
-  logger->debug("Inspect container: {0}", data.dump(2));
-  return {response.status(), data};
+  logger->debug("Inspect container: {0}", response.data());
+
+  auto status = DockerStatus::NoError;
+  if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+  return {status, json::parse(response.data())};
 }
 template <typename T>
 ResultJSON DockerClient<T>::remove_container(const Container &container)
@@ -148,15 +184,57 @@ ResultJSON DockerClient<T>::remove_container(const Container &container)
   auto query_path = fmt::format("/containers/{0}", container.id);
   auto response = client->request(HTTPMethod::DELETE, query_path);
   logger->debug("Remove container: {0}", container.id);
+
+  auto status = DockerStatus::NoError;
+  if (response.status() == HTTPStatus::OK) {
+    status = DockerStatus::NoError;
+  }
+  else if (response.status() == HTTPStatus::BAD_REQUEST) {
+    status = DockerStatus::BadParameter;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
   if (response.data().empty()) {
-    return {response.status(), json{}};
+    return {status, json{}};
   }
   else {
-    auto data = json::parse(response.data());
-    return {response.status(), data};
+    return {status, json::parse(response.data())};
   }
 }
 
+template <typename T>
+ResultJSON DockerClient<T>::stop_container(const Container &container,
+                                           unsigned int wait_time)
+{
+  auto query_path =
+      fmt::format("/containers/{0}/stop?t={1}", container.id, wait_time);
+  auto response = client->post(query_path);
+  logger->debug("Stop container: {0}", container.id);
+
+  auto status = DockerStatus::NoError;
+  if (response.status() == HTTPStatus::NO_CONTENT) {
+    status = DockerStatus::NoError;
+  }
+  else if (response.status() == HTTPStatus::SEE_OTHER) {
+    status = DockerStatus::ContainerAlreadyStopped;
+  }
+  else if (response.status() == HTTPStatus::NOT_FOUND) {
+    status = DockerStatus::NoSuchContainer;
+  }
+  else if (response.status() == HTTPStatus::SERVER_ERROR) {
+    status = DockerStatus::ServerError;
+  }
+  if (response.data().empty()) {
+    return {status, json{}};
+  }
+  else {
+    return {status, json::parse(response.data())};
+  }
+}
 template <typename T> void DockerClient<T>::run()
 {
   // auto container = createContainer(
@@ -177,10 +255,12 @@ template <typename T> void DockerClient<T>::run()
   Container container{container_json["Id"]};
   // auto container = createContainer(image_name, {"date"});
   // inspectContainer(container);
-  start_container(container);
-  attach_container(container);
-   inspect_container(container);
-  remove_container(container);
+  auto start_result = start_container(container);
+  if (!is_error(start_result)) {
+    attach_container(container);
+    inspect_container(container);
+    remove_container(container);
+  }
   // inspect_container(container);
   // getContainers();
   // 1. Create the container
@@ -193,6 +273,30 @@ template <typename T> void DockerClient<T>::run()
   // the container’s start) and stream=1
   // 6. If in detached mode or only stdin is attached, display the container’s
   // id.
+}
+
+template <typename T>
+template <typename U>
+std::string DockerClient<T>::get_message_error(const U &)
+{
+  return {};
+}
+template <typename T>
+std::string DockerClient<T>::get_message_error(const nlohmann::json &data)
+{
+  return data["message"];
+}
+template <typename T> bool DockerClient<T>::is_error(const ResultJSON &result)
+{
+  const auto &status = std::get<0>(result);
+
+  if (status != DockerStatus::NoError) {
+    logger->error("Status code: {}, Error message: {}",
+                  static_cast<int>(status),
+                  get_message_error(std::get<1>(result)));
+    return true;
+  }
+  return false;
 }
 
 template class DockerClient<UnixSocket>;
