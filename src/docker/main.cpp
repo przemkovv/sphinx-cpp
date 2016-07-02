@@ -16,6 +16,7 @@
 #pragma clang diagnostic pop
 
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
 #include <fmt/format.h>
 
 int main()
@@ -30,13 +31,16 @@ int main()
   logger->info("Hello");
 
   try {
-      {
+    {
       auto docker =
           Sphinx::Docker::v2::make_docker_client("/var/run/docker.sock");
-      logger->info("Info:\n{} ", docker.getInfo());
-      // logger->info("Containers:\n{} ", docker.getContainers());
-      // logger->info("Containers:\n{} ", docker.getContainers());
-      docker.run();
+
+      auto result = docker.run_command_in_mounted_dir(
+          {"./main"}, boost::filesystem::canonical("../data/test_sandbox"));
+          //{"g++", "main.cpp"},
+          //boost::filesystem::canonical("../data/test_sandbox"));
+
+      logger->info("{}", result);
       // logger->info("Images:\n{} ", docker.getImages());
     }
   }
