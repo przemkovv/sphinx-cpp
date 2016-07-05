@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Sphinx)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_definitions(
     -std=c++1z
@@ -18,20 +17,21 @@ add_definitions(
     -Weffc++
     -Werror
     )
-#INSTALL(TARGETS HelloCMake DESTINATION ${HelloCMake_SOURCE_DIR}/assets)
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
-#find_library(NGHTTP2_LIB nghttp2_asio)
-#find_library(SSL_LIB ssl)
-#find_library(CRYPTO_LIB crypto)
-#find_library(POCO_UTIL PocoUtil)
 find_package (Threads REQUIRED)
 find_package(Boost 1.60 COMPONENTS filesystem program_options)
+
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
+
+set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
 add_subdirectory(src/core)
 #add_subdirectory(src/net)
 add_subdirectory(src/app)
 add_subdirectory(src/docker)
+add_subdirectory(src/docker_tests)
 #add_subdirectory(src/tests)
 
 
