@@ -1,43 +1,45 @@
 #pragma once
 
-#include <string>
-#include <istream>
-#include <Poco/Pipe.h>
-#include "File.h"
 #include "Compiler.h"
-#include "Sandbox.h"
+#include "File.h"
 #include "Logger.h"
+#include "Sandbox.h"
+#include <Poco/Pipe.h>
+#include <istream>
+#include <string>
 
 namespace Sphinx {
 namespace Compilers {
 
 class MakeCompiler : public Compiler {
-    public:
-        MakeCompiler(std::string executable_path = "make",
-                     std::string output_filename = "application",
-                     std::string makefile_path = "data/Makefile");
-        std::string getVersion();
+public:
+  MakeCompiler(std::string executable_path = "make",
+               std::string output_filename = "application",
+               std::string makefile_path = "data/Makefile");
+  std::string get_version() override;
 
-        bool compile(File file);
-        bool compile(Sandbox sandbox) ;
+  bool compile(File file) override;
+  bool compile(Sandbox sandbox) override;
 
-        const char *name() { return "Sphinx::Compilers::MakeCompiler"; }
+  const char *name() const override
+  {
+    return "Sphinx::Compilers::MakeCompiler";
+  }
 
-        virtual std::string getOutput() const { return output; }
-        virtual std::string getErrors() const { return errors; }
-    protected:
+  virtual const std::string &get_output() const override { return output_; }
+  virtual const std::string &get_errors() const override { return errors_; }
+protected:
+private:
+  boost::filesystem::path output_filename_;
+  boost::filesystem::path makefile_path_;
+  std::string output_;
+  std::string errors_;
 
+  Logger logger_;
+  std::string convert_pipe_to_string(Poco::Pipe &pipe) const;
 
-    private:
-        boost::filesystem::path output_filename;
-        boost::filesystem::path makefile_path;
-        std::string output;
-        std::string errors;
-
-        Logger logger;
-        std::string convertPipeToString(Poco::Pipe& pipe);
-
-
+protected:
+  virtual Logger &logger() override { return logger_; }
 };
 }
 }
