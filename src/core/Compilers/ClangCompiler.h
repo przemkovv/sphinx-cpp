@@ -2,9 +2,8 @@
 #pragma once
 
 #include "Compiler.h"
-#include "Logger.h"
 #include "File.h"
-
+#include "Logger.h"
 
 #include <string>
 #include <tuple>
@@ -16,28 +15,29 @@ namespace Sphinx {
 namespace Compilers {
 
 class ClangCompiler : public Compiler {
-    public:
-        const std::vector<std::string> CXXFlags {
-            "-std=c++14", "-Wall", "-Werror"
-        };
-            
-        ClangCompiler(std::string executable_path, const std::vector<std::string> &flags);
-        std::string get_version() override;
+public:
+  const std::vector<std::string> CXXFlags{"-std=c++14", "-Wall", "-Werror"};
 
-        bool compile(File file) override;
-        bool compile(Sandbox sandbox)  override;
+  ClangCompiler(std::string executable_path,
+                const std::vector<std::string> &flags);
+  std::string get_version() override;
 
-        const char *name() const override { return "Sphinx::Compilers::ClangCompiler"; }
+  bool compile(File file) override;
+  bool compile(Sandbox sandbox) override;
 
-        const std::string& get_output() const override { return result_.out; }
-        const std::string& get_errors() const override{ return result_.err; }
+  const char *name() const override
+  {
+    return "Sphinx::Compilers::ClangCompiler";
+  }
 
+  const std::string &get_output() const override { return result_.out; }
+  const std::string &get_errors() const override { return result_.err; }
 
-    private:
-        CompilerOutput result_;
+private:
+  CompilerOutput result_;
 
-        Logger logger_;
-        virtual Logger& logger() override { return logger_; }
+  Logger logger_;
+  virtual Logger &logger() override { return logger_; }
 };
 }
 }

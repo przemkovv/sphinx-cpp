@@ -10,44 +10,41 @@
 #include <string>
 #include <vector>
 
-
-
 namespace Sphinx {
 
-
 class Sandbox {
-    public:
-        Sandbox();
-        Sandbox(std::initializer_list<File> files);
-        void add_file(File file);
+public:
+  Sandbox();
+  Sandbox(std::initializer_list<File> files);
+  void add_file(File file);
 
-        template<class C>
-        void add_files(const C& files);
+  template <class C> void add_files(const C &files);
 
-        void copy_file(boost::filesystem::path source, FileType file_type);
+  void copy_file(boost::filesystem::path source, FileType file_type);
 
-        boost::filesystem::path project_root_path() { return project_root_path_; }
-        boost::filesystem::path project_executable_path() { return output_executable_path_; }
+  boost::filesystem::path project_root_path() { return project_root_path_; }
+  boost::filesystem::path project_executable_path()
+  {
+    return output_executable_path_;
+  }
 
-        const char *name() const { return "Sphinx::Sandbox"; }
+  const char *name() const { return "Sphinx::Sandbox"; }
 
-        const std::vector<File>& files() const { return files_; }
+  const std::vector<File> &files() const { return files_; }
 
-    protected:
-    private:
-        /* data */
-        boost::filesystem::path project_root_path_;
-        boost::filesystem::path project_src_path_;
-        boost::filesystem::path project_bin_path_;
-        std::vector<File> files_;
-        boost::filesystem::path output_executable_path_;
+protected:
+private:
+  /* data */
+  boost::filesystem::path project_root_path_;
+  boost::filesystem::path project_src_path_;
+  boost::filesystem::path project_bin_path_;
+  std::vector<File> files_;
+  boost::filesystem::path output_executable_path_;
 
-        Logger logger_;
+  Logger logger_;
 
-        void add_file(File file, boost::filesystem::path destination);
-        boost::filesystem::path get_destination_path(FileType file_type);
-        void create_directory(const boost::filesystem::path &path);
-
-
+  void add_file(File file, boost::filesystem::path destination);
+  boost::filesystem::path get_destination_path(FileType file_type);
+  void create_directory(const boost::filesystem::path &path);
 };
 }
