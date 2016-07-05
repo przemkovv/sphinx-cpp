@@ -23,16 +23,16 @@ namespace Sphinx {
 namespace po = boost::program_options;
 
 Application::Application(const std::vector<std::string>& args) :
-    args(args),
-    options_description(prepare_options_description())
+    args_(args),
+    options_description_(prepare_options_description())
 {
-    config = parse_command_line_options(args);
+    config_ = parse_command_line_options(args_);
 
-    auto log_level = config["log_level"].as<int>();
-    configureLogger(static_cast<spdlog::level::level_enum>(log_level));
+    auto log_level = config_["log_level"].as<int>();
+    configure_logger(static_cast<spdlog::level::level_enum>(log_level));
 
-    logger->debug("Command line arguments: {}", args);
-    logger->debug("Configuration {}", config);
+    logger()->debug("Command line arguments: {}", args_);
+    logger()->debug("Configuration {}", config_);
 }
 
 po::options_description Application::prepare_options_description()
@@ -54,14 +54,14 @@ po::options_description Application::prepare_options_description()
 po::variables_map Application::parse_command_line_options(const std::vector<std::string>& args)
 {
     po::variables_map vm;
-    po::store(po::command_line_parser(args).options(options_description).run(), vm);
+    po::store(po::command_line_parser(args).options(options_description_).run(), vm);
 
     if (vm.count("config")) {
         auto config_files = vm["config"].as<std::vector<std::string>>();
         for (auto config_file : config_files) {
             std::ifstream file(config_file);
-            const bool allow_unregistered = false;
-            auto parsed_options = po::parse_config_file(file, options_description, allow_unregistered);
+            const bool allow_unregistered = true;
+            auto parsed_options = po::parse_config_file(file, options_description_, allow_unregistered);
             po::store(parsed_options, vm);
         }
     }
@@ -70,59 +70,60 @@ po::variables_map Application::parse_command_line_options(const std::vector<std:
     return vm;
 }
 
-void Application::configureLogger(spdlog::level::level_enum log_level)
+void Application::configure_logger(spdlog::level::level_enum log_level)
 {
     spdlog::set_level(log_level);
-    logger = make_logger("Application");
+    logger_ = make_logger("Application");
 }
 
-void Application::runServerMode()
+void Application::run_server_mode()
 {
-    logger->info("I'm a server");
+    logger()->info("I'm a server");
     Net::Server server;
     server.listen();
     using namespace std::chrono_literals;
     while (true) {
-        logger->info("Going sleep...");
+        logger()->info("Going sleep...");
         std::this_thread::sleep_for(1000ms);
     }
 }
 
-void Application::runClientMode()
+void Application::run_client_mode()
 {
-    logger->info("I'm a client");
+    logger()->info("I'm a client");
 
-    if (config.count("compilers.clang++.path") == 0) {
+    if (config_.count("compilers.clang++.path") == 0) {
+        logger()->error("Couldn't find the clang++ compiler");
         return;
     }
 
-    auto clangxx_path = config.at("compilers.clang++.path").as<std::string>();
-    auto clangxx_flags = config.at("compilers.clang++.flags").as<std::vector<std::string>>();
-    logger->debug("Clang++ flags: {}", clangxx_flags);
+    auto clangxx_path = config_.at("compilers.clang++.path").as<std::string>();
+    auto clangxx_flags = config_.at("compilers.clang++.flags").as<std::vector<std::string>>();
+    logger()->debug("Clang++ flags: {}", clangxx_flags);
     Compilers::ClangCompiler compiler{clangxx_path, clangxx_flags};
-    logger->info(compiler.get_version());
-    std::vector<Sandbox> samples{SampleData::simpleHelloWorld(), SampleData::simpleHelloWorldCompileError()};
+    logger()->info(compiler.get_version());
+    std::vector<Sandbox> samples{SampleData::simple_hello_world(), SampleData::simple_hello_world_compile_error()};
 
     for (auto& sample : samples) {
-        logger->info("------------------------- SAMPLE -------------------------");
+        logger()->info("------------------------- SAMPLE -------------------------");
         if (compiler.compile(sample)) {
-            logger->info("Compilation was completed succesfully");
+            logger()->info("Compilation was completed succesfully");
         } else {
-            logger->error("Compilation failed.");
-            logger->error(compiler.get_errors());
+            logger()->error("Compilation failed.");
+            logger()->error(compiler.get_errors());
         }
-        logger->info("----------------------------------------------------------");
+        logger()->info("----------------------------------------------------------");
     }
 }
 
 int Application::run()
 {
-    if (config.count("help")) {
-        std::cout << options_description;
-    } else if (config.count("server-mode")) {
-        runServerMode();
-    } else if (config.count("client-mode")) {
-        runClientMode();
+    if (config_.count("help")) {
+        std::cout << options_description_;
+    } else if (config_.count("server-mode")) {
+        run_server_mode();
+    } else if (config_.count("client-mode")) {
+        run_client_mode();
     }
 
     return static_cast<int>(ExitCode::OK);

@@ -5,7 +5,7 @@
 namespace Sphinx {
 namespace SampleData {
 
-Sandbox simpleHelloWorld()
+Sandbox simple_hello_world()
 {
     return {
         {
@@ -34,7 +34,7 @@ int main() {
         }};
 }
 
-Sandbox simpleHelloWorldCompileError()
+Sandbox simple_hello_world_compile_error()
 {
     return {
         {

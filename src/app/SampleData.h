@@ -4,8 +4,8 @@
 namespace Sphinx {
 namespace SampleData {
 
-Sandbox simpleHelloWorld();
-Sandbox simpleHelloWorldCompileError();
+Sandbox simple_hello_world();
+Sandbox simple_hello_world_compile_error();
 
 } // namespace SampleData
 } // namespace Sphinx
