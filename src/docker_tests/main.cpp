@@ -2,8 +2,7 @@
 
 #include "Logger.h"
 
-#include "v2/DockerClient.h"
-#include "v2/HTTPClient.h"
+#include "Docker.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
@@ -33,7 +32,7 @@ int main()
   try {
     {
       auto docker =
-          Sphinx::Docker::v2::make_docker_client("/var/run/docker.sock");
+          Sphinx::Docker::make_docker_client("/var/run/docker.sock");
 
       auto result = docker.run_command_in_mounted_dir(
           {"./main"}, boost::filesystem::canonical("../data/test_sandbox"));
