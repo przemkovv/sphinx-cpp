@@ -12,16 +12,19 @@ namespace Compilers {
 class GXXCompiler : public Compiler {
     public:
         GXXCompiler(std::string executable_path);
-        std::string getVersion();
+        std::string get_version() override;
 
-        bool compile(File file);
-        bool compile(Sandbox sandbox) ;
+        bool compile(File file) override;
+        bool compile(Sandbox sandbox) override ;
 
-        const char *name() { return "Sphinx::Compilers::GXXCompiler"; }
+        virtual const char *name() const override { return "Sphinx::Compilers::GXXCompiler"; }
 
 
     private:
-        Logger logger;
+
+        Logger logger_;
+    protected:
+        virtual Logger& logger() override { return logger_; }
 };
 }
 }

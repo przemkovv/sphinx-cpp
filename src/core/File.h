@@ -30,7 +30,7 @@ struct File {
     File(std::string name, std::string content);
     File(std::string name, std::string content, FileType file_type);
 
-    FileType getFileType(std::string filename);
+    FileType get_file_type(std::string filename);
 };
 
 

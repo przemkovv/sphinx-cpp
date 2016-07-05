@@ -19,21 +19,21 @@ namespace fs = boost::filesystem;
 
 MakeCompiler::MakeCompiler(std::string executable_path, std::string output_filename, std::string makefile_path)
     : Compiler(executable_path),
-      output_filename{output_filename},
-      makefile_path{makefile_path},
-      logger(make_logger(name()))
+      output_filename_{output_filename},
+      makefile_path_{makefile_path},
+      logger_(make_logger(name()))
 {
     if (!fs::exists(makefile_path)) {
         throw std::invalid_argument("The `Makefile` is not found. ("+makefile_path+")");
     }
 }
 
-std::string MakeCompiler::getVersion()
+std::string MakeCompiler::get_version()
 {
     Poco::Process::Args args;
     args.push_back("--version");
     Poco::Pipe out_pipe;
-    auto ph = Poco::Process::launch(executable_path, args, nullptr, &out_pipe, nullptr);
+    auto ph = Poco::Process::launch(executable_path_, args, nullptr, &out_pipe, nullptr);
     Poco::PipeInputStream istr(out_pipe);
     std::string output;
     Poco::StreamCopier::copyToString(istr, output);
@@ -43,30 +43,30 @@ std::string MakeCompiler::getVersion()
 
 bool MakeCompiler::compile(File file)
 {
-    logger->info("Compiling file: " + file.name);
+    logger()->info("Compiling file: " + file.name);
     return true;
 }
 bool MakeCompiler::compile(Sandbox sandbox)
 {
-    logger->info("Compiling files: ");
+    logger()->info("Compiling files: ");
     Poco::Process::Args args;
-    sandbox.copyFile(makefile_path, FileType::Other);
+    sandbox.copy_file(makefile_path_, FileType::Other);
     Poco::Pipe out_pipe;
     Poco::Pipe err_pipe;
-    auto ph = Poco::Process::launch(executable_path,
+    auto ph = Poco::Process::launch(executable_path_,
                                     args,
-                                    sandbox.getProjectRootPath().string(),
+                                    sandbox.project_root_path().string(),
                                     nullptr, &out_pipe, &err_pipe);
-    output = convertPipeToString(out_pipe);
-    errors = convertPipeToString(err_pipe);
-    logger->info(errors);
+    output_ = convert_pipe_to_string(out_pipe);
+    errors_ = convert_pipe_to_string(err_pipe);
+    logger()->info(errors_);
     auto exit_code = ph.wait();
-    logger->info("Make exit code: %d", exit_code);
-    output_filepath = (sandbox.getProjectRootPath() / output_filename.string()).string();
+    logger()->info("Make exit code: %d", exit_code);
+    output_filepath_ = (sandbox.project_root_path() / output_filename_.string()).string();
     return exit_code == 0;
 }
 
-std::string MakeCompiler::convertPipeToString(Poco::Pipe& pipe)
+std::string MakeCompiler::convert_pipe_to_string(Poco::Pipe& pipe) const
 {
     Poco::PipeInputStream istr(pipe);
     std::string output;

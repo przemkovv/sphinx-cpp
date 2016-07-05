@@ -100,7 +100,7 @@ void Application::runClientMode()
     auto clangxx_flags = config.at("compilers.clang++.flags").as<std::vector<std::string>>();
     logger->debug("Clang++ flags: {}", clangxx_flags);
     Compilers::ClangCompiler compiler{clangxx_path, clangxx_flags};
-    logger->info(compiler.getVersion());
+    logger->info(compiler.get_version());
     std::vector<Sandbox> samples{SampleData::simpleHelloWorld(), SampleData::simpleHelloWorldCompileError()};
 
     for (auto& sample : samples) {
@@ -109,7 +109,7 @@ void Application::runClientMode()
             logger->info("Compilation was completed succesfully");
         } else {
             logger->error("Compilation failed.");
-            logger->error(compiler.getErrors());
+            logger->error(compiler.get_errors());
         }
         logger->info("----------------------------------------------------------");
     }

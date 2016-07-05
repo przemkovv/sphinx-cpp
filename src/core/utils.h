@@ -69,13 +69,13 @@ auto while_do(const Task1 &task_while, const Task2 &task_do)
 std::string escape_control_characters(const std::string &input);
 
 template <typename Task> struct on_scope_exit {
-  on_scope_exit(const Task &f) : f(f) {}
+  on_scope_exit(const Task &f) : f_(f) {}
   on_scope_exit<Task> &operator=(const on_scope_exit<Task> &) = delete;
   on_scope_exit(const on_scope_exit<Task> &) = delete;
   on_scope_exit(on_scope_exit<Task> &&) = default;
 
-  ~on_scope_exit() { f(); }
-  const Task &f;
+  ~on_scope_exit() { f_(); }
+  const Task &f_;
 };
 
 template <typename Task> on_scope_exit<Task> do_on_scope_exit(const Task &f)

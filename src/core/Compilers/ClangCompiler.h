@@ -22,22 +22,22 @@ class ClangCompiler : public Compiler {
         };
             
         ClangCompiler(std::string executable_path, const std::vector<std::string> &flags);
-        std::string getVersion() override;
+        std::string get_version() override;
 
         bool compile(File file) override;
         bool compile(Sandbox sandbox)  override;
 
-        const char *name() override { return "Sphinx::Compilers::ClangCompiler"; }
+        const char *name() const override { return "Sphinx::Compilers::ClangCompiler"; }
 
-        std::string getOutput() const override { return result.out; }
-        std::string getErrors() const override{ return result.err; }
+        const std::string& get_output() const override { return result_.out; }
+        const std::string& get_errors() const override{ return result_.err; }
 
 
     private:
-        CompilerOutput result;
+        CompilerOutput result_;
 
-        Logger logger;
-        virtual Logger& getLogger() override { return logger; }
+        Logger logger_;
+        virtual Logger& logger() override { return logger_; }
 };
 }
 }

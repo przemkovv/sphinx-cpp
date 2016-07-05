@@ -20,26 +20,26 @@ struct CompilerOutput {
 
 class Compiler {
     protected:
-        std::string executable_path;
+        std::string executable_path_;
         Compiler(std::string executable_path);
 
         CompilerOutput run(std::vector<std::string> args, std::string root_path = ".");
 
-        std::string output_filepath;
+        std::string output_filepath_;
 
-        virtual Logger& getLogger() = 0;
+        virtual Logger& logger() = 0;
 
     public:
-        std::string getOutputFilePath() const { return output_filepath; }
-        virtual std::string getVersion() = 0;
+        const std::string& output_filepath() const { return output_filepath_; }
+        virtual std::string get_version() = 0;
         void compile();
         virtual bool compile(File file) = 0;
         virtual bool compile(Sandbox sandbox) = 0;
 
-        virtual std::string getOutput() const = 0;
-        virtual std::string getErrors() const = 0;
+        virtual const std::string& get_output() const = 0;
+        virtual const std::string& get_errors() const = 0;
 
-        virtual const char *name() { return "Sphinx::Compilers::Compiler"; }
+        virtual const char *name() const { return "Sphinx::Compilers::Compiler"; }
 
         virtual ~Compiler() { }
 
