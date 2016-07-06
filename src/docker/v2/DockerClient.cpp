@@ -20,21 +20,21 @@ namespace fs = boost::filesystem;
 // TODO{przemkovv): think about HTTPStatus code unified translation into
 // DockerStatus code
 
-template <typename T> ResultJSON DockerClient<T>::list_images()
+template <typename T> ResultJSON DockerSocketClient<T>::list_images()
 {
   auto response = client->get("/images/json?all=1");
   auto images = json::parse(response.data());
 
   return {DockerStatus::NoError, images};
 }
-template <typename T> ResultJSON DockerClient<T>::list_containers()
+template <typename T> ResultJSON DockerSocketClient<T>::list_containers()
 {
   auto response = client->get("/containers/json?all=1&size=1");
   auto containers = json::parse(response.data());
 
   return {DockerStatus::NoError, containers};
 }
-template <typename T> ResultJSON DockerClient<T>::get_info()
+template <typename T> ResultJSON DockerSocketClient<T>::get_info()
 {
   auto response = client->get("/info");
   auto info = json::parse(response.data());
@@ -46,7 +46,7 @@ template <typename T> ResultJSON DockerClient<T>::get_info()
   return {status, info};
 }
 template <typename T>
-ResultJSON DockerClient<T>::create_container(
+ResultJSON DockerSocketClient<T>::create_container(
     const std::string &image_name,
     const std::vector<std::string> &commands,
     const fs::path &working_dir,
@@ -99,7 +99,7 @@ ResultJSON DockerClient<T>::create_container(
 }
 
 template <typename T>
-ResultJSON DockerClient<T>::wait_container(const Container &container)
+ResultJSON DockerSocketClient<T>::wait_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/wait", container.id);
   auto response = client->post(request);
@@ -123,7 +123,7 @@ ResultJSON DockerClient<T>::wait_container(const Container &container)
 }
 
 template <typename T>
-ResultJSON DockerClient<T>::start_container(const Container &container)
+ResultJSON DockerSocketClient<T>::start_container(const Container &container)
 {
   auto request = fmt::format("/containers/{0}/start", container.id);
   auto response = client->post(request);
@@ -151,7 +151,7 @@ ResultJSON DockerClient<T>::start_container(const Container &container)
 
 template <typename T>
 Result<std::string, std::string>
-DockerClient<T>::attach_container(const Container &container)
+DockerSocketClient<T>::attach_container(const Container &container)
 {
   auto request = fmt::format(
       "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
@@ -194,7 +194,7 @@ DockerClient<T>::attach_container(const Container &container)
 }
 
 template <typename T>
-ResultJSON DockerClient<T>::inspect_container(const Container &container)
+ResultJSON DockerSocketClient<T>::inspect_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}/json", container.id);
   auto response = client->get(query_path);
@@ -211,7 +211,7 @@ ResultJSON DockerClient<T>::inspect_container(const Container &container)
   return {status, json::parse(response.data())};
 }
 template <typename T>
-ResultJSON DockerClient<T>::remove_container(const Container &container)
+ResultJSON DockerSocketClient<T>::remove_container(const Container &container)
 {
   auto query_path = fmt::format("/containers/{0}", container.id);
   auto response = client->request(HTTPMethod::DELETE, query_path);
@@ -237,8 +237,8 @@ ResultJSON DockerClient<T>::remove_container(const Container &container)
 }
 
 template <typename T>
-ResultJSON DockerClient<T>::stop_container(const Container &container,
-                                           unsigned int wait_time)
+ResultJSON DockerSocketClient<T>::stop_container(const Container &container,
+                                                 unsigned int wait_time)
 {
   auto query_path =
       fmt::format("/containers/{0}/stop?t={1}", container.id, wait_time);
@@ -265,8 +265,8 @@ ResultJSON DockerClient<T>::stop_container(const Container &container,
 }
 template <typename T>
 std::tuple<std::string, std::string, int>
-DockerClient<T>::run_command_in_mounted_dir(const std::vector<std::string> &cmd,
-                                            const fs::path &mount_dir)
+DockerSocketClient<T>::run_command_in_mounted_dir(
+    const std::vector<std::string> &cmd, const fs::path &mount_dir)
 {
   auto working_dir = fs::path("/home/sandbox");
   auto create_result = create_container(
@@ -291,18 +291,18 @@ DockerClient<T>::run_command_in_mounted_dir(const std::vector<std::string> &cmd,
 
 template <typename T>
 template <typename U>
-std::string DockerClient<T>::get_message_error(const U & /*data*/)
+std::string DockerSocketClient<T>::get_message_error(const U & /*data*/)
 {
   return {};
 }
 template <typename T>
-std::string DockerClient<T>::get_message_error(const nlohmann::json &data)
+std::string DockerSocketClient<T>::get_message_error(const nlohmann::json &data)
 {
   return data["message"];
 }
 template <typename T>
 template <typename... U>
-bool DockerClient<T>::throw_if_error(const Result<U...> &result)
+bool DockerSocketClient<T>::throw_if_error(const Result<U...> &result)
 {
   const auto &status = std::get<0>(result);
   if (status != DockerStatus::NoError) {
@@ -315,7 +315,7 @@ bool DockerClient<T>::throw_if_error(const Result<U...> &result)
 }
 template <typename T>
 template <typename... U>
-bool DockerClient<T>::is_error(const Result<U...> &result)
+bool DockerSocketClient<T>::is_error(const Result<U...> &result)
 {
   const auto &status = std::get<0>(result);
   if (status != DockerStatus::NoError) {
@@ -327,8 +327,13 @@ bool DockerClient<T>::is_error(const Result<U...> &result)
   return false;
 }
 
-template class DockerClient<UnixSocket>;
-template class DockerClient<TCPSocket>;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-template-vtables"
+
+template class DockerSocketClient<UnixSocket>;
+template class DockerSocketClient<TCPSocket>;
+
+#pragma clang diagnostic pop
 
 } // namespace v2
 } // namespace Docker
