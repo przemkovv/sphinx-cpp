@@ -31,10 +31,10 @@ int main()
 
   try {
     {
-      auto docker =
+      std::unique_ptr<Sphinx::Docker::DockerClient> docker =
           Sphinx::Docker::make_docker_client("/var/run/docker.sock");
 
-      auto result = docker.run_command_in_mounted_dir(
+      auto result = docker->run_command_in_mounted_dir(
           {"./main"}, boost::filesystem::canonical("../data/test_sandbox"));
           //{"g++", "main.cpp"},
           //boost::filesystem::canonical("../data/test_sandbox"));

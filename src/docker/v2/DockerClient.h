@@ -42,7 +42,7 @@ class DockerClient {
 public:
   virtual ResultJSON list_images() = 0;
   virtual ResultJSON list_containers() = 0;
-  virtual ResultJSON get_info();
+  virtual ResultJSON get_info() = 0;
 
   virtual ResultJSON create_container(
       const std::string &image_name,
@@ -133,11 +133,11 @@ private:
 
 inline auto make_docker_client(const std::string &address, unsigned short port)
 {
-  return DockerSocketClient<TCPSocket>{address, port};
+  return std::make_unique<DockerSocketClient<TCPSocket>>(address, port);
 }
 inline auto make_docker_client(const std::string &socket_path)
 {
-  return DockerSocketClient<UnixSocket>{socket_path};
+  return std::make_unique<DockerSocketClient<UnixSocket>>(socket_path);
 }
 
 } // namespace v2
