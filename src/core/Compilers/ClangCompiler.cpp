@@ -27,13 +27,6 @@ std::string ClangCompiler::get_version()
   return result.out;
 }
 
-bool ClangCompiler::compile(File file)
-{
-  logger()->info("Compiling file: " + file.name);
-  // TODO(przemkov): need to be implemented
-  return true;
-}
-
 bool ClangCompiler::compile(Sandbox sandbox)
 {
   using namespace ranges;
