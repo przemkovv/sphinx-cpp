@@ -43,11 +43,6 @@ std::string MakeCompiler::get_version()
   return output;
 }
 
-bool MakeCompiler::compile(File file)
-{
-  logger()->info("Compiling file: " + file.name);
-  return true;
-}
 bool MakeCompiler::compile(Sandbox sandbox)
 {
   logger()->info("Compiling files: ");
