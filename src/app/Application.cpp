@@ -8,6 +8,7 @@
 
 #include "Compilers/ClangCompiler.h"
 #include "Compilers/GXXCompiler.h"
+#include "Compilers/DockerGXXCompiler.h"
 #include "Compilers/MakeCompiler.h"
 
 #include "Net/Server.h"
@@ -131,12 +132,21 @@ std::unique_ptr<Compilers::Compiler> Application::make_gxx_compiler()
   return std::make_unique<Compilers::GXXCompiler>(gxx_path, gxx_flags);
 }
 
+std::unique_ptr<Compilers::Compiler> Application::make_docker_gxx_compiler()
+{
+  auto gxx_path = config_.at("compilers.g++.path").as<std::string>();
+  auto gxx_flags =
+      config_.at("compilers.g++.flags").as<std::vector<std::string>>();
+  logger()->trace("G++ flags: {}", gxx_flags);
+  return std::make_unique<Compilers::DockerGXXCompiler>(gxx_path, gxx_flags);
+}
+
 void Application::run_client_mode()
 {
   logger()->info("I'm a client");
 
   // auto compiler = make_clang_compiler();
-  auto compiler = make_gxx_compiler();
+  auto compiler = make_docker_gxx_compiler();
   if (!compiler)
     return;
 
