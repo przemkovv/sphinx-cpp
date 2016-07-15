@@ -3,8 +3,14 @@
 #pragma once
 
 #include "Compiler.h"
+
+
+#include "Docker.h"
+
 #include "File.h"
 #include "Logger.h"
+
+#include <memory>
 #include <string>
 
 namespace Sphinx {
@@ -30,8 +36,10 @@ public:
 
 private:
   CompilerOutput result_;
-  Logger logger_;
+  std::unique_ptr<Sphinx::Docker::DockerClient> docker_client_;
 
+
+  Logger logger_;
 protected:
   virtual Logger &logger() override { return logger_; }
 };
