@@ -7,6 +7,7 @@
 #include "Sandbox.h"
 
 #include "Compilers/ClangCompiler.h"
+#include "Compilers/GXXCompiler.h"
 #include "Compilers/MakeCompiler.h"
 
 #include "Net/Server.h"
@@ -46,6 +47,11 @@ po::options_description Application::prepare_options_description()
                      "Flags for the clang compiler.")(
       "compilers.clang++.path", po::value<std::string>(),
       "Path for the clang++ executable.");
+  desc.add_options()("compilers.g++.flags",
+                     po::value<std::vector<std::string>>(),
+                     "Flags for the g++ compiler.")(
+      "compilers.g++.path", po::value<std::string>(),
+      "Path for the g++ executable.");
   return desc;
 }
 
@@ -89,33 +95,52 @@ void Application::run_server_mode()
   }
 }
 
-void Application::run_client_mode()
+std::unique_ptr<Compilers::Compiler> Application::make_clang_compiler()
 {
-  logger()->info("I'm a client");
-
   if (config_.count("compilers.clang++.path") == 0) {
     logger()->error("Couldn't find the clang++ compiler");
-    return;
+    return {};
   }
 
   auto clangxx_path = config_.at("compilers.clang++.path").as<std::string>();
   auto clangxx_flags =
       config_.at("compilers.clang++.flags").as<std::vector<std::string>>();
-  logger()->debug("Clang++ flags: {}", clangxx_flags);
-  Compilers::ClangCompiler compiler{clangxx_path, clangxx_flags};
-  logger()->info(compiler.get_version());
+  logger()->trace("Clang++ flags: {}", clangxx_flags);
+  return std::make_unique<Compilers::ClangCompiler>(clangxx_path,
+                                                    clangxx_flags);
+}
+
+std::unique_ptr<Compilers::Compiler> Application::make_gxx_compiler()
+{
+  auto gxx_path = config_.at("compilers.g++.path").as<std::string>();
+  auto gxx_flags =
+      config_.at("compilers.g++.flags").as<std::vector<std::string>>();
+  logger()->trace("G++ flags: {}", gxx_flags);
+  return std::make_unique<Compilers::GXXCompiler>(gxx_path, gxx_flags);
+}
+
+void Application::run_client_mode()
+{
+  logger()->info("I'm a client");
+
+  // auto compiler = make_clang_compiler();
+  auto compiler = make_gxx_compiler();
+  if (!compiler)
+    return;
+
+  logger()->info(compiler->get_version());
   std::vector<Sandbox> samples{SampleData::simple_hello_world(),
                                SampleData::simple_hello_world_compile_error()};
 
   for (auto &sample : samples) {
     logger()->info(
         "------------------------- SAMPLE -------------------------");
-    if (compiler.compile(sample)) {
+    if (compiler->compile(sample)) {
       logger()->info("Compilation was completed succesfully");
     }
     else {
       logger()->error("Compilation failed.");
-      logger()->error(compiler.get_errors());
+      logger()->error(compiler->get_errors());
     }
     logger()->info(
         "----------------------------------------------------------");

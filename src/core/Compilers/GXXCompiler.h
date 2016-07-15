@@ -11,7 +11,10 @@ namespace Compilers {
 
 class GXXCompiler : public Compiler {
 public:
-  GXXCompiler(std::string executable_path);
+  const std::vector<std::string> CXXFlags{"-std=c++14", "-Wall", "-Werror"};
+
+  GXXCompiler(std::string executable_path,
+    const std::vector<std::string> &flags);
   std::string get_version() override;
 
   bool compile(File file) override;
@@ -22,7 +25,11 @@ public:
     return "Sphinx::Compilers::GXXCompiler";
   }
 
+  const std::string &get_output() const override { return result_.out; }
+  const std::string &get_errors() const override { return result_.err; }
+
 private:
+  CompilerOutput result_;
   Logger logger_;
 
 protected:

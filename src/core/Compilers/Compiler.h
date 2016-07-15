@@ -34,7 +34,6 @@ public:
   const std::string &output_filepath() const { return output_filepath_; }
   virtual std::string get_version() = 0;
   void compile();
-  virtual bool compile(File file) = 0;
   virtual bool compile(Sandbox sandbox) = 0;
 
   virtual const std::string &get_output() const = 0;

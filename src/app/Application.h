@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Logger.h"
+
+#include "Compilers/Compiler.h"
+#include <memory>
 #include <boost/program_options.hpp>
 #include <string>
+
 
 namespace Sphinx {
 
@@ -17,6 +21,11 @@ protected:
   boost::program_options::options_description prepare_options_description();
   boost::program_options::variables_map
   parse_command_line_options(const std::vector<std::string> &arguments);
+private:
+  std::unique_ptr<Compilers::Compiler> make_clang_compiler();
+  std::unique_ptr<Compilers::Compiler> make_gxx_compiler();
+
+
 
 private:
   Logger logger_;

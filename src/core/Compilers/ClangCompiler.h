@@ -22,7 +22,6 @@ public:
                 const std::vector<std::string> &flags);
   std::string get_version() override;
 
-  bool compile(File file) override;
   bool compile(Sandbox sandbox) override;
 
   const char *name() const override
