@@ -10,6 +10,8 @@
 
 namespace Sphinx {
 
+namespace po = boost::program_options;
+
 class Application {
 protected:
   // void handle_help(const std::string& name, const std::string& value) ;
@@ -18,8 +20,9 @@ protected:
   void run_client_mode();
   [[noreturn]] void run_server_mode();
 
-  boost::program_options::options_description prepare_options_description();
-  boost::program_options::variables_map
+  po::options_description prepare_options_description_cli();
+  po::options_description prepare_options_description_config_file();
+  po::variables_map
   parse_command_line_options(const std::vector<std::string> &arguments);
 private:
   std::unique_ptr<Compilers::Compiler> make_clang_compiler();
@@ -33,8 +36,9 @@ private:
   Logger &logger() { return logger_; }
 
   const std::vector<std::string> args_;
-  boost::program_options::options_description options_description_;
-  boost::program_options::variables_map config_;
+  po::options_description options_description_cli_;
+  po::options_description options_description_config_file_;
+  po::variables_map config_;
 
 public:
   Application(const std::vector<std::string> &args);

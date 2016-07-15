@@ -20,12 +20,12 @@
 
 namespace Sphinx {
 
-namespace po = boost::program_options;
-
 Application::Application(const std::vector<std::string> &args)
-  : args_(args), options_description_(prepare_options_description())
+  : args_(args),
+    options_description_cli_(prepare_options_description_cli()),
+    options_description_config_file_(prepare_options_description_config_file()),
+    config_(parse_command_line_options(args_))
 {
-  config_ = parse_command_line_options(args_);
 
   auto log_level = config_["log_level"].as<int>();
   configure_logger(static_cast<spdlog::level::level_enum>(log_level));
@@ -34,7 +34,7 @@ Application::Application(const std::vector<std::string> &args)
   logger()->debug("Configuration {}", config_);
 }
 
-po::options_description Application::prepare_options_description()
+po::options_description Application::prepare_options_description_cli()
 {
   po::options_description desc("Allowed options");
   desc.add_options()("help,I", "Display help information")(
@@ -42,11 +42,18 @@ po::options_description Application::prepare_options_description()
       "log_level", po::value<int>()->default_value(spdlog::level::info),
       "Logging level")("config", po::value<std::vector<std::string>>(),
                        "Configuration file");
+  return desc;
+}
+
+po::options_description Application::prepare_options_description_config_file()
+{
+  po::options_description desc("Configuration file only options");
   desc.add_options()("compilers.clang++.flags",
                      po::value<std::vector<std::string>>(),
                      "Flags for the clang compiler.")(
       "compilers.clang++.path", po::value<std::string>(),
       "Path for the clang++ executable.");
+
   desc.add_options()("compilers.g++.flags",
                      po::value<std::vector<std::string>>(),
                      "Flags for the g++ compiler.")(
@@ -59,17 +66,22 @@ po::variables_map
 Application::parse_command_line_options(const std::vector<std::string> &args)
 {
   po::variables_map vm;
-  po::store(po::command_line_parser(args).options(options_description_).run(),
-            vm);
+  po::store(
+      po::command_line_parser(args).options(options_description_cli_).run(),
+      vm);
 
   if (vm.count("config")) {
     auto config_files = vm["config"].as<std::vector<std::string>>();
     for (auto config_file : config_files) {
       std::ifstream file(config_file);
       const bool allow_unregistered = true;
-      auto parsed_options =
-          po::parse_config_file(file, options_description_, allow_unregistered);
+      auto parsed_options = po::parse_config_file(
+          file, options_description_config_file_, allow_unregistered);
       po::store(parsed_options, vm);
+
+      auto parsed_options_cli = po::parse_config_file(
+          file, options_description_cli_, allow_unregistered);
+      po::store(parsed_options_cli, vm);
     }
   }
 
@@ -150,7 +162,8 @@ void Application::run_client_mode()
 int Application::run()
 {
   if (config_.count("help")) {
-    std::cout << options_description_;
+    std::cout << options_description_cli_;
+    std::cout << options_description_config_file_;
   }
   else if (config_.count("server-mode")) {
     run_server_mode();
