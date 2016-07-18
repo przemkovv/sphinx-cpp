@@ -26,7 +26,7 @@ CompilerOutput Compiler::run(std::vector<std::string> args,
 {
   Poco::Pipe out_pipe;
   Poco::Pipe err_pipe;
-  logger()->debug("Launching '{}' with arguments {}", executable_path_, args);
+  logger()->debug("Launching '{}' with arguments {} in '{}'", executable_path_, args, root_path);
   auto ph = Poco::Process::launch(executable_path_, args, root_path, nullptr,
                                   &out_pipe, &err_pipe);
   auto exit_code = ph.wait();

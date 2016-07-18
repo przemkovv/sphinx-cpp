@@ -23,8 +23,8 @@ protected:
   std::string executable_path_;
   Compiler(std::string executable_path);
 
-  CompilerOutput run(std::vector<std::string> args,
-                     std::string root_path = ".");
+  virtual CompilerOutput run(std::vector<std::string> args,
+                             std::string root_path = ".");
 
   std::string output_filepath_;
 
