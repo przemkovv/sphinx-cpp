@@ -24,6 +24,9 @@ public:
     const std::vector<std::string> &flags);
   std::string get_version() override;
 
+  virtual CompilerOutput run(std::vector<std::string> args,
+                             std::string root_path = ".") override;
+
   bool compile(Sandbox sandbox) override;
 
   virtual const char *name() const override

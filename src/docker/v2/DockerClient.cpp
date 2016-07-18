@@ -271,6 +271,7 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
   auto working_dir = fs::path("/home/sandbox");
   auto create_result = create_container(
       image_name, cmd, working_dir, {std::make_pair(mount_dir, working_dir)});
+  throw_if_error(create_result);
 
   Container container{std::get<1>(create_result).at("Id")};
   SCOPE_EXIT(throw_if_error(remove_container(container)));
