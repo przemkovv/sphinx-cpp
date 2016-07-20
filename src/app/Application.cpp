@@ -25,14 +25,14 @@ Application::Application(const std::vector<std::string> &args)
   : args_(args),
     options_description_cli_(prepare_options_description_cli()),
     options_description_config_file_(prepare_options_description_config_file()),
-    config_(parse_command_line_options(args_))
+    config_cli_(parse_command_line_options(args_))
 {
 
-  auto log_level = config_["log_level"].as<int>();
+  auto log_level = config_cli_["log_level"].as<int>();
   configure_logger(static_cast<spdlog::level::level_enum>(log_level));
 
   logger()->debug("Command line arguments: {}", args_);
-  logger()->debug("Configuration {}", config_);
+  logger()->debug("Configuration {}", config_cli_);
 }
 
 po::options_description Application::prepare_options_description_cli()
@@ -110,14 +110,14 @@ void Application::run_server_mode()
 
 std::unique_ptr<Compilers::Compiler> Application::make_clang_compiler()
 {
-  if (config_.count("compilers.clang++.path") == 0) {
+  if (config_cli_.count("compilers.clang++.path") == 0) {
     logger()->error("Couldn't find the clang++ compiler");
     return {};
   }
 
-  auto clangxx_path = config_.at("compilers.clang++.path").as<std::string>();
+  auto clangxx_path = config_cli_.at("compilers.clang++.path").as<std::string>();
   auto clangxx_flags =
-      config_.at("compilers.clang++.flags").as<std::vector<std::string>>();
+      config_cli_.at("compilers.clang++.flags").as<std::vector<std::string>>();
   logger()->trace("Clang++ flags: {}", clangxx_flags);
   return std::make_unique<Compilers::ClangCompiler>(clangxx_path,
                                                     clangxx_flags);
@@ -125,18 +125,18 @@ std::unique_ptr<Compilers::Compiler> Application::make_clang_compiler()
 
 std::unique_ptr<Compilers::Compiler> Application::make_gxx_compiler()
 {
-  auto gxx_path = config_.at("compilers.g++.path").as<std::string>();
+  auto gxx_path = config_cli_.at("compilers.g++.path").as<std::string>();
   auto gxx_flags =
-      config_.at("compilers.g++.flags").as<std::vector<std::string>>();
+      config_cli_.at("compilers.g++.flags").as<std::vector<std::string>>();
   logger()->trace("G++ flags: {}", gxx_flags);
   return std::make_unique<Compilers::GXXCompiler>(gxx_path, gxx_flags);
 }
 
 std::unique_ptr<Compilers::Compiler> Application::make_docker_gxx_compiler()
 {
-  auto gxx_path = config_.at("compilers.g++.path").as<std::string>();
+  auto gxx_path = config_cli_.at("compilers.g++.path").as<std::string>();
   auto gxx_flags =
-      config_.at("compilers.g++.flags").as<std::vector<std::string>>();
+      config_cli_.at("compilers.g++.flags").as<std::vector<std::string>>();
   logger()->trace("G++ flags: {}", gxx_flags);
   return std::make_unique<Compilers::DockerGXXCompiler>(gxx_path, gxx_flags);
 }
@@ -171,15 +171,15 @@ void Application::run_client_mode()
 
 int Application::run()
 {
-  if (config_.count("help")) {
+  if (config_cli_.count("help")) {
     std::cout << options_description_cli_;
     std::cout << options_description_config_file_;
   }
-  else if (config_.count("server-mode")) {
+  else if (config_cli_.count("server-mode")) {
     run_server_mode();
   }
-  else if (config_.count("client-mode")) {
-    run_client_mode();
+  else if (config_cli_.count("client-mode")) {
+    // run_client_mode();
   }
 
   return static_cast<int>(ExitCode::OK);
