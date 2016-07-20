@@ -1,14 +1,28 @@
 {
   "application": {
-  "compilers": {
-    "clang" : {
-      "flags" : [
-        "-std=c++14",
-        "-Wall",
-        "-Werror"
-      ],
-      "path" : "/usr/bin/clang++"
+    "compilers": {
+      "clang" : {
+        "flags" : [
+          "-std=c++14",
+          "-Wall",
+          "-Werror"
+        ],
+        "path" : "/usr/bin/clang++"
+      },
+      "g++" : {
+        "flags" : [
+          "-std=c++14",
+          "-Wall",
+          "-Werror"
+        ],
+        "path" : "/usr/bin/clang++"
+      }
+    },
+    "dockers": {
+      "image-name": "sphinx-docker"
+    },
+    "loggers": {
+      "Sphinx::Compilers::DockerGXXCompiler": 5
     }
-  }
   }
 }

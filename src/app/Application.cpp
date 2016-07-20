@@ -7,8 +7,8 @@
 #include "Sandbox.h"
 
 #include "Compilers/ClangCompiler.h"
-#include "Compilers/GXXCompiler.h"
 #include "Compilers/DockerGXXCompiler.h"
+#include "Compilers/GXXCompiler.h"
 #include "Compilers/MakeCompiler.h"
 
 #include "Net/Server.h"
@@ -19,13 +19,14 @@
 #include <memory>
 #include <thread>
 
+
 namespace Sphinx {
 
 Application::Application(const std::vector<std::string> &args)
   : args_(args),
     options_description_cli_(prepare_options_description_cli()),
-    options_description_config_file_(prepare_options_description_config_file()),
-    config_cli_(parse_command_line_options(args_))
+    config_cli_(parse_command_line_options(args_)),
+    config_(parse_config_file())
 {
 
   auto log_level = config_cli_["log_level"].as<int>();
@@ -41,25 +42,8 @@ po::options_description Application::prepare_options_description_cli()
   desc.add_options()("help,I", "Display help information")(
       "client-mode,c", "Client mode")("server-mode,s", "Server mode")(
       "log_level", po::value<int>()->default_value(spdlog::level::info),
-      "Logging level")("config", po::value<std::vector<std::string>>(),
+      "Logging level")("config", po::value<std::string>(),
                        "Configuration file");
-  return desc;
-}
-
-po::options_description Application::prepare_options_description_config_file()
-{
-  po::options_description desc("Configuration file only options");
-  desc.add_options()("compilers.clang++.flags",
-                     po::value<std::vector<std::string>>(),
-                     "Flags for the clang compiler.")(
-      "compilers.clang++.path", po::value<std::string>(),
-      "Path for the clang++ executable.");
-
-  desc.add_options()("compilers.g++.flags",
-                     po::value<std::vector<std::string>>(),
-                     "Flags for the g++ compiler.")(
-      "compilers.g++.path", po::value<std::string>(),
-      "Path for the g++ executable.");
   return desc;
 }
 
@@ -70,24 +54,19 @@ Application::parse_command_line_options(const std::vector<std::string> &args)
   po::store(
       po::command_line_parser(args).options(options_description_cli_).run(),
       vm);
-
-  if (vm.count("config")) {
-    auto config_files = vm["config"].as<std::vector<std::string>>();
-    for (auto config_file : config_files) {
-      std::ifstream file(config_file);
-      const bool allow_unregistered = true;
-      auto parsed_options = po::parse_config_file(
-          file, options_description_config_file_, allow_unregistered);
-      po::store(parsed_options, vm);
-
-      auto parsed_options_cli = po::parse_config_file(
-          file, options_description_cli_, allow_unregistered);
-      po::store(parsed_options_cli, vm);
-    }
-  }
-
   po::notify(vm);
   return vm;
+}
+
+json Application::parse_config_file()
+{
+  json config;
+  if (config_cli_.count("config")) {
+    auto config_file = config_cli_["config"].as<std::string>();
+    std::ifstream file(config_file);
+    config << file;
+  }
+  return config;
 }
 
 void Application::configure_logger(spdlog::level::level_enum log_level)
@@ -110,12 +89,13 @@ void Application::run_server_mode()
 
 std::unique_ptr<Compilers::Compiler> Application::make_clang_compiler()
 {
-  if (config_cli_.count("compilers.clang++.path") == 0) {
+  if (config_.count("/application/compilers/clang++/path"_json_pointer) == 0) {
     logger()->error("Couldn't find the clang++ compiler");
     return {};
   }
 
-  auto clangxx_path = config_cli_.at("compilers.clang++.path").as<std::string>();
+  auto clangxx_path =
+      config_["/application/compilers/clang++/path"_json_pointer].get<std::string>();
   auto clangxx_flags =
       config_cli_.at("compilers.clang++.flags").as<std::vector<std::string>>();
   logger()->trace("Clang++ flags: {}", clangxx_flags);
@@ -171,6 +151,7 @@ void Application::run_client_mode()
 
 int Application::run()
 {
+  logger()->debug("Configuration file: {}", config_.dump(2));
   if (config_cli_.count("help")) {
     std::cout << options_description_cli_;
     std::cout << options_description_config_file_;
