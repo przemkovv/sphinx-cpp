@@ -29,7 +29,9 @@ inline auto make_logger(const std::string &name,
     return logger;
   }
   catch (spdlog::spdlog_ex &) {
-    return spdlog::get(name);
+    auto logger =  spdlog::get(name);
+    logger->set_level(level);
+    return logger;
   }
 }
 

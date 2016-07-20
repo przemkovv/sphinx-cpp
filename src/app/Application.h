@@ -49,7 +49,6 @@ private:
 
   const std::vector<std::string> args_;
   po::options_description options_description_cli_;
-  po::options_description options_description_config_file_;
   po::variables_map config_cli_;
 
   json config_;

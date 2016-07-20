@@ -28,6 +28,10 @@
     }
   },
   "loggers": {
-    "Sphinx::Compilers::DockerGXXCompiler": 5
+    "Sphinx::Compilers::DockerGXXCompiler": 2,
+    "Sphinx::Compilers::GXXCompiler": 2,
+    "Sphinx::Compilers::ClangCompiler": 2,
+    "DockerSocketClient": 2,
+    "Sphinx::Sandbox": 2
   }
 }

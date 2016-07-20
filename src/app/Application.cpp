@@ -72,6 +72,14 @@ void Application::configure_logger(spdlog::level::level_enum log_level)
 {
   spdlog::set_level(log_level);
   logger_ = make_logger("Application");
+
+  auto logger_levels = config_["loggers"];
+  for (auto it = logger_levels.begin(); it != logger_levels.end(); ++it) {
+    logger()->debug("Logger {} has log level {}.", it.key(),
+                    it.value().get<int>());
+    make_logger(it.key(),
+                static_cast<spdlog::level::level_enum>(it.value().get<int>()));
+  }
 }
 
 void Application::run_server_mode()
@@ -146,7 +154,8 @@ void Application::run_client_mode()
 {
   logger()->info("I'm a client");
 
-  auto default_compiler = config_["/compilers/default"_json_pointer].get<std::string>();
+  auto default_compiler =
+      config_["/compilers/default"_json_pointer].get<std::string>();
 
   auto compiler = make_compiler(default_compiler);
   if (!compiler)
