@@ -19,7 +19,6 @@
 #include <memory>
 #include <thread>
 
-
 namespace Sphinx {
 
 Application::Application(const std::vector<std::string> &args)
@@ -89,44 +88,67 @@ void Application::run_server_mode()
 
 std::unique_ptr<Compilers::Compiler> Application::make_clang_compiler()
 {
-  if (config_.count("/application/compilers/clang++/path"_json_pointer) == 0) {
+  auto clangxx_path = config_["/compilers/clang++/path"_json_pointer];
+  if (clangxx_path.is_null()) {
     logger()->error("Couldn't find the clang++ compiler");
     return {};
   }
 
-  auto clangxx_path =
-      config_["/application/compilers/clang++/path"_json_pointer].get<std::string>();
-  auto clangxx_flags =
-      config_cli_.at("compilers.clang++.flags").as<std::vector<std::string>>();
+  auto clangxx_flags = config_["/compilers/clang++/flags"_json_pointer]
+                           .get<std::vector<std::string>>();
   logger()->trace("Clang++ flags: {}", clangxx_flags);
-  return std::make_unique<Compilers::ClangCompiler>(clangxx_path,
-                                                    clangxx_flags);
+  return std::make_unique<Compilers::ClangCompiler>(
+      clangxx_path.get<std::string>(), clangxx_flags);
 }
 
 std::unique_ptr<Compilers::Compiler> Application::make_gxx_compiler()
 {
-  auto gxx_path = config_cli_.at("compilers.g++.path").as<std::string>();
-  auto gxx_flags =
-      config_cli_.at("compilers.g++.flags").as<std::vector<std::string>>();
+  auto gxx_path = config_["/compilers/g++/path"_json_pointer];
+  if (gxx_path.is_null()) {
+    logger()->error("Couldn't find the g++ compiler");
+    return {};
+  }
+  auto gxx_flags = config_["/compilers/g++/flags"_json_pointer]
+                       .get<std::vector<std::string>>();
   logger()->trace("G++ flags: {}", gxx_flags);
-  return std::make_unique<Compilers::GXXCompiler>(gxx_path, gxx_flags);
+  return std::make_unique<Compilers::GXXCompiler>(gxx_path.get<std::string>(),
+                                                  gxx_flags);
 }
 
 std::unique_ptr<Compilers::Compiler> Application::make_docker_gxx_compiler()
 {
-  auto gxx_path = config_cli_.at("compilers.g++.path").as<std::string>();
-  auto gxx_flags =
-      config_cli_.at("compilers.g++.flags").as<std::vector<std::string>>();
+  auto gxx_path =
+      config_["/compilers/docker-g++/path"_json_pointer].get<std::string>();
+  auto gxx_flags = config_["/compilers/docker-g++/flags"_json_pointer]
+                       .get<std::vector<std::string>>();
+  auto docker_image = config_["/compilers/docker-g++/image-name"_json_pointer]
+                          .get<std::string>();
   logger()->trace("G++ flags: {}", gxx_flags);
   return std::make_unique<Compilers::DockerGXXCompiler>(gxx_path, gxx_flags);
+}
+
+std::unique_ptr<Compilers::Compiler>
+Application::make_compiler(std::string name)
+{
+  if (name == "clang++") {
+    return make_clang_compiler();
+  }
+  else if (name == "g++") {
+    return make_gxx_compiler();
+  }
+  else if (name == "docker-g++") {
+    return make_docker_gxx_compiler();
+  }
+  return {};
 }
 
 void Application::run_client_mode()
 {
   logger()->info("I'm a client");
 
-  // auto compiler = make_clang_compiler();
-  auto compiler = make_docker_gxx_compiler();
+  auto default_compiler = config_["/compilers/default"_json_pointer].get<std::string>();
+
+  auto compiler = make_compiler(default_compiler);
   if (!compiler)
     return;
 
@@ -154,13 +176,12 @@ int Application::run()
   logger()->debug("Configuration file: {}", config_.dump(2));
   if (config_cli_.count("help")) {
     std::cout << options_description_cli_;
-    std::cout << options_description_config_file_;
   }
   else if (config_cli_.count("server-mode")) {
     run_server_mode();
   }
   else if (config_cli_.count("client-mode")) {
-    // run_client_mode();
+    run_client_mode();
   }
 
   return static_cast<int>(ExitCode::OK);

@@ -17,10 +17,11 @@
 
 #pragma clang diagnostic pop
 
+using json = nlohmann::json;
+
 namespace Sphinx {
 
 namespace po = boost::program_options;
-using json = nlohmann::json;
 
 class Application {
 protected:
@@ -39,6 +40,7 @@ private:
   std::unique_ptr<Compilers::Compiler> make_clang_compiler();
   std::unique_ptr<Compilers::Compiler> make_gxx_compiler();
   std::unique_ptr<Compilers::Compiler> make_docker_gxx_compiler();
+  std::unique_ptr<Compilers::Compiler> make_compiler(std::string name);
 
 private:
   Logger logger_;
