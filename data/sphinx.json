@@ -31,7 +31,7 @@
     "Sphinx::Compilers::DockerGXXCompiler": 2,
     "Sphinx::Compilers::GXXCompiler": 2,
     "Sphinx::Compilers::ClangCompiler": 2,
-    "DockerSocketClient": 2,
+    "Sphinx::Docker::v2::DockerSocketClient": 2,
     "Sphinx::Sandbox": 2
   }
 }

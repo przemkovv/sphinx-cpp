@@ -25,8 +25,6 @@ namespace po = boost::program_options;
 
 class Application {
 protected:
-  // void handle_help(const std::string& name, const std::string& value) ;
-  // void display_help() ;
   void configure_logger(spdlog::level::level_enum level);
   void run_client_mode();
   [[noreturn]] void run_server_mode();

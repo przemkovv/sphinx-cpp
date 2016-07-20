@@ -32,7 +32,7 @@ int main()
   try {
     {
       std::unique_ptr<Sphinx::Docker::DockerClient> docker =
-          Sphinx::Docker::make_docker_client("/var/run/docker.sock");
+          Sphinx::Docker::make_docker_client("/var/run/docker.sock", "sphinx-image");
 
       auto result = docker->run_command_in_mounted_dir(
           {"./main"}, boost::filesystem::canonical("../data/test_sandbox"));

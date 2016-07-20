@@ -132,7 +132,8 @@ std::unique_ptr<Compilers::Compiler> Application::make_docker_gxx_compiler()
   auto docker_image = config_["/compilers/docker-g++/image-name"_json_pointer]
                           .get<std::string>();
   logger()->trace("G++ flags: {}", gxx_flags);
-  return std::make_unique<Compilers::DockerGXXCompiler>(gxx_path, gxx_flags);
+  return std::make_unique<Compilers::DockerGXXCompiler>(gxx_path, gxx_flags,
+                                                        docker_image);
 }
 
 std::unique_ptr<Compilers::Compiler>

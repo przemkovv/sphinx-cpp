@@ -4,7 +4,6 @@
 
 #include "Compiler.h"
 
-
 #include "Docker.h"
 
 #include "File.h"
@@ -21,7 +20,8 @@ public:
   const std::vector<std::string> CXXFlags{"-std=c++14", "-Wall", "-Werror"};
 
   DockerGXXCompiler(std::string executable_path,
-    const std::vector<std::string> &flags);
+                    const std::vector<std::string> &flags,
+                    std::string docker_image);
   std::string get_version() override;
 
   virtual CompilerOutput run(std::vector<std::string> args,
@@ -41,8 +41,8 @@ private:
   CompilerOutput result_;
   std::unique_ptr<Sphinx::Docker::DockerClient> docker_client_;
 
-
   Logger logger_;
+
 protected:
   virtual Logger &logger() override { return logger_; }
 };
