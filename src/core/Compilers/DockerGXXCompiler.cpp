@@ -21,10 +21,11 @@ namespace Compilers {
 namespace fs = boost::filesystem;
 
 DockerGXXCompiler::DockerGXXCompiler(std::string executable_path,
-                                     const std::vector<std::string> &flags)
+                                     const std::vector<std::string> &flags,
+                                     std::string docker_image)
   : Compiler(executable_path),
     CXXFlags(flags),
-    docker_client_(Sphinx::Docker::make_docker_client("/var/run/docker.sock")),
+    docker_client_(Sphinx::Docker::make_docker_client("/var/run/docker.sock", docker_image)),
     logger_(make_logger(name()))
 {
 }

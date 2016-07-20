@@ -78,21 +78,26 @@ private:
   using Socket = T;
   std::shared_ptr<HTTPClient<T>> client;
 
-  Logger logger = make_logger("DockerSocketClient");
+  Logger logger = make_logger("Sphinx::Docker::v2::DockerSocketClient");
   const std::string image_name = "sphinx-docker";
 
 public:
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, TCPSocket>::value>>
-  explicit DockerSocketClient(const std::string &address, unsigned short port)
-    : client(std::make_shared<HTTPClient<U>>(address, port))
+  explicit DockerSocketClient(const std::string &address,
+                              unsigned short port,
+                              const std::string &docker_image_name)
+    : client(std::make_shared<HTTPClient<U>>(address, port)),
+      image_name(docker_image_name)
   {
   }
 
   template <typename U = Socket,
             typename = std::enable_if_t<std::is_same<U, UnixSocket>::value>>
-  explicit DockerSocketClient(const std::string &socket_path)
-    : client(std::make_shared<HTTPClient<U>>(socket_path))
+  explicit DockerSocketClient(const std::string &socket_path,
+                              const std::string &docker_image_name)
+    : client(std::make_shared<HTTPClient<U>>(socket_path)),
+      image_name(docker_image_name)
   {
   }
 
@@ -131,13 +136,13 @@ private:
   std::string get_message_error(const nlohmann::json &data);
 };
 
-inline auto make_docker_client(const std::string &address, unsigned short port)
+inline auto make_docker_client(const std::string &address, unsigned short port, const std::string &image_name)
 {
-  return std::make_unique<DockerSocketClient<TCPSocket>>(address, port);
+  return std::make_unique<DockerSocketClient<TCPSocket>>(address, port, image_name);
 }
-inline auto make_docker_client(const std::string &socket_path)
+inline auto make_docker_client(const std::string &socket_path, const std::string &image_name)
 {
-  return std::make_unique<DockerSocketClient<UnixSocket>>(socket_path);
+  return std::make_unique<DockerSocketClient<UnixSocket>>(socket_path, image_name);
 }
 
 } // namespace v2
