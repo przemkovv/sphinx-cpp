@@ -26,11 +26,14 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_COLOR_MAKEFILE   ON)
 
+add_subdirectory(src/shared_lib)
+add_subdirectory(src/docker)
 add_subdirectory(src/core)
 #add_subdirectory(src/net)
 add_subdirectory(src/app)
-add_subdirectory(src/docker)
 add_subdirectory(src/docker_tests)
 #add_subdirectory(src/tests)
 
