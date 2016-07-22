@@ -11,6 +11,8 @@
 #include "Compilers/GXXCompiler.h"
 #include "Compilers/MakeCompiler.h"
 
+#include "Executors/Native.h"
+
 #include "Net/Server.h"
 
 #include <iostream>
@@ -151,12 +153,24 @@ Application::make_compiler(std::string name)
   return {};
 }
 
+std::unique_ptr<Executors::Executor>
+Application::make_executor(std::string name, const Sandbox &sandbox)
+{
+  if (name == "native") {
+    return std::make_unique<Executors::Native>(sandbox);
+  }
+  return {};
+}
+
 void Application::run_client_mode()
 {
   logger()->info("I'm a client");
 
   auto default_compiler =
       config_["/compilers/default"_json_pointer].get<std::string>();
+
+  auto default_executor =
+      config_["/executors/default"_json_pointer].get<std::string>();
 
   auto compiler = make_compiler(default_compiler);
   if (!compiler)
@@ -171,6 +185,14 @@ void Application::run_client_mode()
         "------------------------- SAMPLE -------------------------");
     if (compiler->compile(sample)) {
       logger()->info("Compilation was completed succesfully");
+
+      logger()->info("Running compiler program");
+      auto executor = make_executor(default_executor, sample);
+      auto output = executor->run_sync();
+
+      logger()->debug("Program stdout: {}", output.stdout);
+      logger()->debug("Program stderr: {}", output.stderr);
+      logger()->debug("Program exit code: {}", output.exit_code);
     }
     else {
       logger()->error("Compilation failed.");

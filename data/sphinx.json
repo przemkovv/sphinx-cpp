@@ -1,6 +1,6 @@
 {
   "compilers": {
-    "default": "docker-g++",
+    "default": "g++",
     "clang++" : {
       "flags" : [
         "-std=c++14",
@@ -26,6 +26,11 @@
       ],
       "path" : "/usr/bin/g++"
     }
+  },
+  "executors": {
+    "default": "native",
+    "native": {},
+    "docker_container": {}
   },
   "loggers": {
     "Sphinx::Compilers::DockerGXXCompiler": 2,

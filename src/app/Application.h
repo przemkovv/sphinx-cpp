@@ -3,6 +3,7 @@
 #include "Logger.h"
 
 #include "Compilers/Compiler.h"
+#include "Executors/Executor.h"
 #include <boost/program_options.hpp>
 #include <memory>
 #include <string>
@@ -39,6 +40,8 @@ private:
   std::unique_ptr<Compilers::Compiler> make_gxx_compiler();
   std::unique_ptr<Compilers::Compiler> make_docker_gxx_compiler();
   std::unique_ptr<Compilers::Compiler> make_compiler(std::string name);
+  std::unique_ptr<Executors::Executor> make_executor(std::string name,
+                                                     const Sandbox &sandbox);
 
 private:
   Logger logger_;
