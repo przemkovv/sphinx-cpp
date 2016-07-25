@@ -22,8 +22,8 @@ public:
 
   void copy_file(boost::filesystem::path source, FileType file_type);
 
-  boost::filesystem::path project_root_path() { return project_root_path_; }
-  boost::filesystem::path project_executable_path()
+  boost::filesystem::path project_root_path() const { return project_root_path_; }
+  boost::filesystem::path project_executable_path() const
   {
     return output_executable_path_;
   }

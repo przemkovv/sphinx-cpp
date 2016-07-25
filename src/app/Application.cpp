@@ -178,7 +178,8 @@ void Application::run_client_mode()
 
   logger()->info(compiler->get_version());
   std::vector<Sandbox> samples{SampleData::simple_hello_world(),
-                               SampleData::simple_hello_world_compile_error()};
+                               SampleData::simple_hello_world_compile_error(),
+                               SampleData::simple_echo_out_and_err()};
 
   for (auto &sample : samples) {
     logger()->info(
@@ -188,7 +189,7 @@ void Application::run_client_mode()
 
       logger()->info("Running compiler program");
       auto executor = make_executor(default_executor, sample);
-      auto output = executor->run_sync();
+      auto output = executor->run_sync("Hello World!");
 
       logger()->debug("Program stdout: {}", output.stdout);
       logger()->debug("Program stderr: {}", output.stderr);

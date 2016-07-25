@@ -4,6 +4,21 @@
 namespace Sphinx {
 namespace SampleData {
 
+Sandbox simple_echo_out_and_err()
+{
+  return {
+          {"main.cpp", R"code(
+#include <iostream>
+#include <string>
+int main() {
+    std::string text;
+    std::cin >> text;
+    std::cout << text << std::endl;
+    std::cerr << text << std::endl;
+    return 0;
+} )code"}};
+}
+
 Sandbox simple_hello_world()
 {
   return {{"foo.cpp", R"code(

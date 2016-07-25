@@ -13,7 +13,7 @@ struct CommandOutput {
 };
 
 class Executor {
-private:
+protected:
   const Sphinx::Sandbox sandbox_;
 
 public:
