@@ -6,10 +6,6 @@
 
 #include <fmt/format.h>
 
-#include <Poco/PipeStream.h>
-#include <Poco/Process.h>
-#include <Poco/StreamCopier.h>
-
 #include <range/v3/view/remove_if.hpp>
 #include <range/v3/view/transform.hpp>
 
