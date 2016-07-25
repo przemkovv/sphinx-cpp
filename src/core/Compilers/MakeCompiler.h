@@ -4,7 +4,6 @@
 #include "File.h"
 #include "Logger.h"
 #include "Sandbox.h"
-#include <Poco/Pipe.h>
 #include <istream>
 #include <string>
 
@@ -35,7 +34,6 @@ private:
   std::string errors_;
 
   Logger logger_;
-  std::string convert_pipe_to_string(Poco::Pipe &pipe) const;
 
 protected:
   virtual Logger &logger() override { return logger_; }

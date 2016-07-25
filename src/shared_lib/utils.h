@@ -3,7 +3,6 @@
 
 #include "pprint.hpp"
 
-#include <Poco/PipeStream.h>
 #include <boost/program_options.hpp>
 
 #include <future>
@@ -33,7 +32,6 @@ enum class ExitCode
   CONFIG = 78       /// configuration error
 };
 
-std::string to_string(Poco::Pipe &pipe);
 
 /// @brief Auxiliary function to create a shared unique ptr.
 template <class T, class... Args>

@@ -1,8 +1,6 @@
 
 #include "Application.h"
 
-#include <Poco/Util/OptionException.h>
-
 #include <iostream>
 #include <stdexcept>
 
