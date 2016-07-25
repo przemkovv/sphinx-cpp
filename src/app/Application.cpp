@@ -11,7 +11,8 @@
 #include "Compilers/GXXCompiler.h"
 #include "Compilers/MakeCompiler.h"
 
-#include "Executors/Native.h"
+#include "Executors/DockerExecutor.h"
+#include "Executors/NativeExecutor.h"
 
 #include "Net/Server.h"
 
@@ -157,7 +158,13 @@ std::unique_ptr<Executors::Executor>
 Application::make_executor(std::string name, const Sandbox &sandbox)
 {
   if (name == "native") {
-    return std::make_unique<Executors::Native>(sandbox);
+    return std::make_unique<Executors::NativeExecutor>(sandbox);
+  }
+  else if (name == "docker-container") {
+    auto docker_image =
+        config_["/executors/docker-container/image-name"_json_pointer]
+            .get<std::string>();
+    return std::make_unique<Executors::DockerExecutor>(sandbox, docker_image);
   }
   return {};
 }
@@ -187,7 +194,7 @@ void Application::run_client_mode()
     if (compiler->compile(sample)) {
       logger()->info("Compilation was completed succesfully");
 
-      logger()->info("Running compiler program");
+      logger()->info("Running compiled program");
       auto executor = make_executor(default_executor, sample);
       auto output = executor->run_sync("Hello World!");
 

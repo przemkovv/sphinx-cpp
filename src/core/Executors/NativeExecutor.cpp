@@ -1,10 +1,10 @@
 
-#include "Native.h"
+#include "NativeExecutor.h"
 
 #include "process.h"
 namespace Sphinx::Executors {
 
-CommandOutput Native::run_sync(std::string stdin)
+CommandOutput NativeExecutor::run_sync(std::string stdin)
 {
 
   procxx::process command(sandbox_.project_executable_path().string(),

@@ -11,15 +11,15 @@
 
 namespace Sphinx::Executors {
 
-class Native : public Executor {
+class NativeExecutor : public Executor {
 
 public:
-  Native(const Sandbox &sandbox)
+  NativeExecutor(const Sandbox &sandbox)
     : Executor(sandbox), logger_(make_logger(name()))
   {
   }
 
-  const char *name() const { return "Sphinx::Executors::Native"; }
+  const char *name() const { return "Sphinx::Executors::NativeExecutor"; }
   virtual CommandOutput run_sync(std::string stdin = "") override;
 
 private:
