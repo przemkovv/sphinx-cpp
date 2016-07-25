@@ -45,7 +45,7 @@ int main()
       {
         auto result = docker->run_command_in_mounted_dir(
             {"./echo"}, boost::filesystem::canonical("../data/test_sandbox"),
-            "Hello\n");
+            "Hello world\n");
 
         logger->info("{}", result);
       }

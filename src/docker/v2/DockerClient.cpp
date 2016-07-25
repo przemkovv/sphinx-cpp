@@ -178,6 +178,7 @@ DockerSocketClient<T>::attach_container(const Container &container, const std::s
   logger->debug("Attach container: {0}", data);
   logger->debug("Attach container (error): {0}", data_error);
   client->use_output_streams(false);
+  client->use_input_stream(false);
 
   auto status = DockerStatus::UndefiniedError;
   if (response.status() == HTTPStatus::SWITCHING_PROTOCOLS ||

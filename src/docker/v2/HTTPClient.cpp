@@ -228,8 +228,8 @@ void HTTPClient<T>::handle_read_docker_raw_stream_header(
     return;
   }
   auto header = get_n_from_response_stream(header_length);
-  logger->trace("Stream header: {} -- {:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x}",
-                header, header[0], header[1], header[2], header[3], header[4],
+  logger->trace("Stream header: -- {:x} {:x} {:x} {:x} {:x} {:x} {:x} {:x}",
+                header[0], header[1], header[2], header[3], header[4],
                 header[5], header[6], header[7]);
   auto stream_type = static_cast<StreamType>(header[0]);
   auto data_size = boost::endian::big_to_native(
