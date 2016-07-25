@@ -151,15 +151,21 @@ ResultJSON DockerSocketClient<T>::start_container(const Container &container)
 
 template <typename T>
 Result<std::string, std::string>
-DockerSocketClient<T>::attach_container(const Container &container)
+DockerSocketClient<T>::attach_container(const Container &container, const std::string &stdin)
 {
   auto request = fmt::format(
-      "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
+      "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1&stdin=1", container.id);
   boost::asio::streambuf output;
   boost::asio::streambuf error;
+  boost::asio::streambuf input;
   client->set_output_stream(&output);
   client->set_error_stream(&error);
+  client->set_input_stream(&input);
   client->use_output_streams(true);
+  client->use_input_stream(true);
+
+  std::ostream os(&input);
+  os << stdin;
 
   auto response = while_do(
       [&]() {
@@ -266,7 +272,9 @@ ResultJSON DockerSocketClient<T>::stop_container(const Container &container,
 template <typename T>
 std::tuple<std::string, std::string, int>
 DockerSocketClient<T>::run_command_in_mounted_dir(
-    const std::vector<std::string> &cmd, const fs::path &mount_dir)
+    const std::vector<std::string> &cmd,
+    const fs::path &mount_dir,
+    const std::string &stdin)
 {
   auto working_dir = fs::path("/home/sandbox");
   auto create_result = create_container(
@@ -279,7 +287,7 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
   auto start_result = start_container(container);
   throw_if_error(start_result);
 
-  auto attach_result = attach_container(container);
+  auto attach_result = attach_container(container, stdin);
   throw_if_error(attach_result);
 
   auto wait_result = wait_container(container);

@@ -53,7 +53,7 @@ public:
           &mounting_points) = 0;
   virtual ResultJSON start_container(const Container &container) = 0;
   virtual Result<std::string, std::string>
-  attach_container(const Container &container) = 0;
+  attach_container(const Container &container, const std::string& stdin) = 0;
   virtual ResultJSON inspect_container(const Container &container) = 0;
   virtual ResultJSON remove_container(const Container &container) = 0;
   virtual ResultJSON stop_container(const Container &container,
@@ -62,7 +62,8 @@ public:
 
   virtual std::tuple<std::string, std::string, int>
   run_command_in_mounted_dir(const std::vector<std::string> &cmd,
-                             const boost::filesystem::path &mount_dir) = 0;
+                             const boost::filesystem::path &mount_dir,
+                             const std::string &stdin = "") = 0;
 
   virtual ~DockerClient() {}
 
@@ -114,7 +115,7 @@ public:
           &mounting_points) override;
   ResultJSON start_container(const Container &container) override;
   Result<std::string, std::string>
-  attach_container(const Container &container) override;
+  attach_container(const Container &container, const std::string &stdin = "") override;
   ResultJSON inspect_container(const Container &container) override;
   ResultJSON remove_container(const Container &container) override;
   ResultJSON stop_container(const Container &container,
@@ -123,7 +124,8 @@ public:
 
   std::tuple<std::string, std::string, int>
   run_command_in_mounted_dir(const std::vector<std::string> &cmd,
-                             const boost::filesystem::path &mount_dir) override;
+                             const boost::filesystem::path &mount_dir,
+                             const std::string &stdin) override;
 
   DockerSocketClient(const DockerSocketClient<T> &) = default;
   DockerSocketClient(DockerSocketClient<T> &&) = default;
@@ -136,13 +138,18 @@ private:
   std::string get_message_error(const nlohmann::json &data);
 };
 
-inline auto make_docker_client(const std::string &address, unsigned short port, const std::string &image_name)
+inline auto make_docker_client(const std::string &address,
+                               unsigned short port,
+                               const std::string &image_name)
 {
-  return std::make_unique<DockerSocketClient<TCPSocket>>(address, port, image_name);
+  return std::make_unique<DockerSocketClient<TCPSocket>>(address, port,
+                                                         image_name);
 }
-inline auto make_docker_client(const std::string &socket_path, const std::string &image_name)
+inline auto make_docker_client(const std::string &socket_path,
+                               const std::string &image_name)
 {
-  return std::make_unique<DockerSocketClient<UnixSocket>>(socket_path, image_name);
+  return std::make_unique<DockerSocketClient<UnixSocket>>(socket_path,
+                                                          image_name);
 }
 
 } // namespace v2

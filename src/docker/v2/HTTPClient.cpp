@@ -66,6 +66,31 @@ void HTTPClient<T>::log_error(const boost::system::error_code &error_code)
 }
 
 template <typename T>
+void HTTPClient<T>::write_raw_data() {
+
+  logger->trace("Write raw data: {} bytes", get_stream(StreamType::stdin)->size());
+  auto self = shared_from_this();
+  boost::asio::async_write(*socket_, *get_stream(StreamType::stdin),
+                           [this, self](auto &error_code, auto length) {
+                             handle_write_raw_data(error_code, length);
+
+                           });
+
+}
+
+template <typename T>
+void HTTPClient<T>::handle_write_raw_data(
+    const boost::system::error_code &error_code, std::size_t length)
+{
+  if (error_code) {
+    log_error(error_code);
+    return;
+  }
+  logger->debug("Send {} bytes of data to socket.", length);
+
+}
+
+template <typename T>
 void HTTPClient<T>::prepare_request(const HTTPRequest &request)
 {
   http_request_ = request;
@@ -161,6 +186,9 @@ void HTTPClient<T>::handle_read_headers(
   }
   else if (boost::starts_with(content_type,
                               "application/vnd.docker.raw-stream")) {
+    if (use_input_stream_) {
+      write_raw_data();
+    }
     receive_application_docker_raw_stream();
   }
 }

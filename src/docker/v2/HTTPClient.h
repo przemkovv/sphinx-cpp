@@ -84,13 +84,25 @@ public:
                    const std::string &data = "",
                    const HTTPHeaders &headers = {});
 
-  void set_output_stream(boost::asio::streambuf* streambuf)
+
+  void set_input_stream(boost::asio::streambuf *streambuf)
+  {
+    input_buffer_ = std::experimental::make_observer(streambuf);
+  }
+  void set_output_stream(boost::asio::streambuf *streambuf)
   {
     output_buffer_ = std::experimental::make_observer(streambuf);
   }
-  void set_error_stream(boost::asio::streambuf* streambuf)
+  void set_error_stream(boost::asio::streambuf *streambuf)
   {
     error_buffer_ = std::experimental::make_observer(streambuf);
+  }
+  void use_input_stream(bool use)
+  {
+    if (use) {
+      assert(input_buffer_.get() != nullptr);
+    }
+    use_input_stream_ = use;
   }
   void use_output_streams(bool use)
   {
@@ -114,7 +126,11 @@ private:
   void handle_read_headers(const boost::system::error_code &error_code,
                            std::size_t length);
 
-  void receive_application_docker_raw_stream();
+  void write_raw_data();
+  void handle_write_raw_data(const boost::system::error_code &error_code,
+                               std::size_t length);
+
+             void receive_application_docker_raw_stream();
   void async_read_docker_raw_stream_header();
   void handle_read_docker_raw_stream_header(
       const boost::system::error_code &error_code, std::size_t /*length*/);
@@ -172,15 +188,19 @@ private:
   observer_ptr<boost::asio::streambuf> error_buffer_;
   observer_ptr<boost::asio::streambuf> input_buffer_;
   bool use_output_streams_;
+  bool use_input_stream_;
 
   auto get_stream(const StreamType &stream_type) const
   {
     switch (stream_type) {
     case StreamType::stdin:
+      assert(input_buffer_);
       return input_buffer_.get();
     case StreamType::stdout:
+      assert(input_buffer_);
       return output_buffer_.get();
     case StreamType::stderr:
+      assert(error_buffer_);
       return error_buffer_.get();
     }
   }
