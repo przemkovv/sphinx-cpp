@@ -17,6 +17,7 @@ add_definitions(
     -Wno-shadow
     -Weffc++
     -Werror
+    -DSPDLOG_FMT_EXTERNAL
     )
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
