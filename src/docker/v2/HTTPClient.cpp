@@ -55,7 +55,7 @@ template <typename T> void HTTPClient<T>::prepare_response()
   // response_.consume(response_.size());
   // assert(response_.size() == 0);
   if (response_buffer_.size() > 0) {
-    logger_response->notice("There is some data in the response_buffer_.");
+    logger_response->warn("There is some data in the response_buffer_.");
   }
 }
 
