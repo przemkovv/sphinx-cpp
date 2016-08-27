@@ -12,6 +12,7 @@
 #include <experimental/memory>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 
 #include "utils.h"
 
@@ -159,6 +160,9 @@ private:
                               const StreamType &stream_type);
   void forward_data_to_response_data(const std::size_t &n);
 
+
+  void start_writing_raw_data_thread();
+
 private:
   void log_error(const boost::system::error_code &error_code);
   Logger logger = Sphinx::make_logger("HTTPClient");
@@ -189,6 +193,11 @@ private:
   observer_ptr<boost::asio::streambuf> input_buffer_;
   bool use_output_streams_;
   bool use_input_stream_;
+
+  bool finished_;
+
+  std::thread writing_thread_;
+  bool writing_data_finished_;
 
   auto get_stream(const StreamType &stream_type) const
   {

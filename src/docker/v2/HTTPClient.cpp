@@ -20,7 +20,12 @@ HTTPResponse HTTPClient<T>::request(HTTPMethod method,
   prepare_response();
   async_connect();
 
+  finished_ = false;
   io_service_.run();
+  finished_ = true;
+  if (writing_thread_.joinable()) {
+    writing_thread_.join();
+  }
   return http_response_;
 }
 
@@ -65,17 +70,17 @@ void HTTPClient<T>::log_error(const boost::system::error_code &error_code)
   logger->error("{0}: {1}", error_code.value(), error_code.message());
 }
 
-template <typename T>
-void HTTPClient<T>::write_raw_data() {
+template <typename T> void HTTPClient<T>::write_raw_data()
+{
 
-  logger->trace("Write raw data: {} bytes", get_stream(StreamType::stdin)->size());
+  logger->trace("Write raw data: {} bytes",
+                get_stream(StreamType::stdin)->size());
   auto self = shared_from_this();
   boost::asio::async_write(*socket_, *get_stream(StreamType::stdin),
                            [this, self](auto &error_code, auto length) {
                              handle_write_raw_data(error_code, length);
 
                            });
-
 }
 
 template <typename T>
@@ -87,7 +92,7 @@ void HTTPClient<T>::handle_write_raw_data(
     return;
   }
   logger->debug("Send {} bytes of data to socket.", length);
-
+  writing_data_finished_ = true;
 }
 
 template <typename T>
@@ -187,10 +192,27 @@ void HTTPClient<T>::handle_read_headers(
   else if (boost::starts_with(content_type,
                               "application/vnd.docker.raw-stream")) {
     if (use_input_stream_) {
-      write_raw_data();
+      start_writing_raw_data_thread();
     }
     receive_application_docker_raw_stream();
   }
+}
+
+template <typename T> void HTTPClient<T>::start_writing_raw_data_thread()
+{
+  writing_data_finished_ = true;
+  writing_thread_ = std::thread([this]() {
+    while (!finished_) {
+      if (writing_data_finished_ && get_stream(StreamType::stdin)->size() > 0) {
+        writing_data_finished_= false;
+        this->write_raw_data();
+      }
+      else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    }
+  });
+  logger->trace("Writing thread has been started.");
 }
 
 template <typename T>
@@ -314,7 +336,8 @@ void HTTPClient<T>::handle_read_chunk_begin(
   if (is_eof) {
     assert(response_buffer_.size() == 0);
     return;
-  } else if (error_code) {
+  }
+  else if (error_code) {
     log_error(error_code);
     return;
   }
@@ -442,7 +465,8 @@ auto HTTPClient<T>::get_n_from_response_stream(std::size_t n)
     std::copy_n(std::istreambuf_iterator<char>(response_stream), n,
                 std::back_inserter(data));
 
-    // discard the last element since copy_n wont increase the iterator after
+    // discard the last element since copy_n wont increase the iterator
+    // after
     // reading the last one (see
     // http://cplusplus.github.io/LWG/lwg-active.html#2471 )
     response_stream.ignore(1);
