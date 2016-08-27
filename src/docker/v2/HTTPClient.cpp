@@ -204,7 +204,7 @@ template <typename T> void HTTPClient<T>::start_writing_raw_data_thread()
   writing_thread_ = std::thread([this]() {
     while (!finished_) {
       if (writing_data_finished_ && get_stream(StreamType::stdin)->size() > 0) {
-        writing_data_finished_= false;
+        writing_data_finished_ = false;
         this->write_raw_data();
       }
       else {
@@ -301,7 +301,7 @@ void HTTPClient<T>::handle_read_docker_raw_stream_data(
   }
 
   if (!is_eof || response_buffer_.size() != 0) {
-    async_read_docker_raw_stream_header();
+    receive_application_docker_raw_stream();
   }
 }
 

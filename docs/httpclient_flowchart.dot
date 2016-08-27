@@ -13,21 +13,35 @@ digraph G {
         async_read_chunk_begin -> handle_read_chunk_begin;
         handle_read_chunk_begin -> async_read_chunk_data;
         async_read_chunk_data -> handle_read_chunk_data;
-        handle_read_chunk_data -> async_read_chunk_data [label = "if more data"];
-        handle_read_chunk_data -> end_reading_chunked_data [label = "if no more data"];
+        handle_read_chunk_data -> "more data to read?";
+        "more data to read?" -> async_read_chunk_data [label = "yes"];
+        "more data to read?" -> end_reading_chunked_data [label = "no"];
         end_reading_chunked_data [shape=rectangle,style=rounded];
+
+        "more data to read?" [shape=diamond];
     };
 
 
     subgraph cluster_writing_data {
-        label = "writing data data";
+        label = "writing data (in parallel)";
         style = "filled,dashed";
         color = black;
         fillcolor = lightyellow;
 
+        start_writing_raw_data_thread -> "is connection finished?";
+        "is connection finished?" -> "data to send?" [label ="no"];
+        "is connection finished?" -> end_writing_data [label ="yes"];
+
+        "data to send?" -> write_raw_data [label ="yes"];
+        "data to send?" -> wait [label ="no"];
+
         write_raw_data -> handle_write_raw_data;
-        handle_write_raw_data -> end_writing_data;
+        handle_write_raw_data -> "is connection finished?";
+        wait -> "is connection finished?";
         end_writing_data [shape=rectangle,style=rounded];
+
+        "is connection finished?" [shape=diamond];
+        "data to send?" [shape=diamond];
     }
 
     subgraph cluster_read_docker_raw_data {
@@ -35,18 +49,19 @@ digraph G {
         style = "filled,dashed";
         color = black;
         fillcolor = lightyellow;
-        end_writing_data -> receive_application_docker_raw_stream;
         receive_application_docker_raw_stream -> async_read_docker_raw_stream_header;
         async_read_docker_raw_stream_header ->handle_read_docker_raw_stream_header;
         handle_read_docker_raw_stream_header -> async_read_docker_raw_stream_data;
         async_read_docker_raw_stream_data -> handle_read_docker_raw_stream_data;
 
-        handle_read_docker_raw_stream_data -> read_docker_data;
+        handle_read_docker_raw_stream_data -> forward_docker_data;
+        forward_docker_data -> "is EOF?";
 
-        read_docker_data -> async_read_docker_raw_stream_data [label ="if more data"];
-        read_docker_data -> end_reading_raw_data [label ="if no more data"];
+        "is EOF?" -> receive_application_docker_raw_stream [label = "no"];
+        "is EOF?" -> end_reading_raw_data [label = "yes"];
         end_reading_raw_data [shape=rectangle,style=rounded]
 
+            "is EOF?" [shape=diamond];
 
     }
     post [shape=diamond];
@@ -58,18 +73,25 @@ digraph G {
     handle_connect ->  handle_write_request;
     handle_write_request -> handle_read_status_line;
     handle_read_status_line ->  handle_read_headers;
-    handle_read_headers -> receive_text [label = "text/json"];
-    handle_read_headers -> write_raw_data [label = "docker-raw-stream\ninput data"];
-    handle_read_headers -> receive_application_docker_raw_stream [label ="docker-raw-stream\nno input data"];
+    handle_read_headers ->"mime_type?";
 
-    receive_text -> async_read_chunk_begin [label ="is chunked"];
-    receive_text -> async_read_content [label ="is not chunked"];
+    "mime_type?" -> receive_text [label = "text/json"];
+    "mime_type?" -> "input_data?" [label = "docker-raw-stream"];
+    "input_data?" -> start_writing_raw_data_thread [label = "yes"];
+    "input_data?" -> receive_application_docker_raw_stream [label = "yes/no"];
+
+    receive_text -> "is chunked?"
+        "is chunked?" -> async_read_chunk_begin [label ="yes"];
+    "is chunked?" -> async_read_content [label ="no"];
 
     async_read_content -> return;
     end_reading_chunked_data -> return;
     end_reading_raw_data -> return;
 
-    return [shape=diamond];
+    return [shape=Mdiamond];
+    "mime_type?" [shape=diamond];
+    "input_data?" [shape=diamond];
+    "is chunked?" [shape=diamond];
 
 
 
