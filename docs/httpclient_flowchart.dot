@@ -1,0 +1,77 @@
+
+digraph G {
+
+    graph [fontsize=10 fontname="Verdana" compound=true];
+    node [shape=record fontsize=10 fontname="Verdana"];
+
+
+    subgraph cluster_read_chunked_data {
+        label = "reading chunked data";
+        style = "filled,dashed";
+        color = black;
+        fillcolor = lightyellow;
+        async_read_chunk_begin -> handle_read_chunk_begin;
+        handle_read_chunk_begin -> async_read_chunk_data;
+        async_read_chunk_data -> handle_read_chunk_data;
+        handle_read_chunk_data -> async_read_chunk_data [label = "if more data"];
+        handle_read_chunk_data -> end_reading_chunked_data [label = "if no more data"];
+        end_reading_chunked_data [shape=rectangle,style=rounded];
+    };
+
+
+    subgraph cluster_writing_data {
+        label = "writing data data";
+        style = "filled,dashed";
+        color = black;
+        fillcolor = lightyellow;
+
+        write_raw_data -> handle_write_raw_data;
+        handle_write_raw_data -> end_writing_data;
+        end_writing_data [shape=rectangle,style=rounded];
+    }
+
+    subgraph cluster_read_docker_raw_data {
+        label = "reading docker raw data";
+        style = "filled,dashed";
+        color = black;
+        fillcolor = lightyellow;
+        end_writing_data -> receive_application_docker_raw_stream;
+        receive_application_docker_raw_stream -> async_read_docker_raw_stream_header;
+        async_read_docker_raw_stream_header ->handle_read_docker_raw_stream_header;
+        handle_read_docker_raw_stream_header -> async_read_docker_raw_stream_data;
+        async_read_docker_raw_stream_data -> handle_read_docker_raw_stream_data;
+
+        handle_read_docker_raw_stream_data -> read_docker_data;
+
+        read_docker_data -> async_read_docker_raw_stream_data [label ="if more data"];
+        read_docker_data -> end_reading_raw_data [label ="if no more data"];
+        end_reading_raw_data [shape=rectangle,style=rounded]
+
+
+    }
+    post [shape=diamond];
+
+    post -> request;
+
+    request -> async_connect;
+    async_connect -> handle_connect;
+    handle_connect ->  handle_write_request;
+    handle_write_request -> handle_read_status_line;
+    handle_read_status_line ->  handle_read_headers;
+    handle_read_headers -> receive_text [label = "text/json"];
+    handle_read_headers -> write_raw_data [label = "docker-raw-stream\ninput data"];
+    handle_read_headers -> receive_application_docker_raw_stream [label ="docker-raw-stream\nno input data"];
+
+    receive_text -> async_read_chunk_begin [label ="is chunked"];
+    receive_text -> async_read_content [label ="is not chunked"];
+
+    async_read_content -> return;
+    end_reading_chunked_data -> return;
+    end_reading_raw_data -> return;
+
+    return [shape=diamond];
+
+
+
+
+}
