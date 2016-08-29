@@ -7,6 +7,7 @@
 
 set tags=tags,./tags
 "let g:easytags_file = "./tags"
+let g:easytags_opts = ["--options=./.ctags"]
 
 ":UpdateTags -R
 
