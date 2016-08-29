@@ -150,28 +150,23 @@ ResultJSON DockerSocketClient<T>::start_container(const Container &container)
 }
 
 template <typename T>
-Result<std::string, std::string>
-DockerSocketClient<T>::attach_container(const Container &container)
+ResultJSON DockerSocketClient<T>::attach_container(const Container &container,
+                                                   IOBuffers &io_buffers)
 {
   auto request = fmt::format(
-      "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1", container.id);
-  boost::asio::streambuf output;
-  boost::asio::streambuf error;
-  client->set_output_stream(&output);
-  client->set_error_stream(&error);
+      "/containers/{0}/attach?stream=1&logs=1&stdout=1&stderr=1&stdin=1",
+      container.id);
+
+  client->set_output_stream(&io_buffers.output);
+  client->set_error_stream(&io_buffers.error);
+  client->set_input_stream(&io_buffers.input);
   client->use_output_streams(true);
+  client->use_input_stream(true);
 
-  auto response = while_do(
-      [&]() {
-        return client->post(request, "", {{"Upgrade", "tcp"}});
-      },
-      [&]() {});
+  auto response = client->post(request, "", {{"Upgrade", "tcp"}});
 
-  std::string data_error{std::istreambuf_iterator<char>(&error), {}};
-  std::string data{std::istreambuf_iterator<char>(&output), {}};
-  logger->debug("Attach container: {0}", data);
-  logger->debug("Attach container (error): {0}", data_error);
   client->use_output_streams(false);
+  client->use_input_stream(false);
 
   auto status = DockerStatus::UndefiniedError;
   if (response.status() == HTTPStatus::SWITCHING_PROTOCOLS ||
@@ -188,9 +183,7 @@ DockerSocketClient<T>::attach_container(const Container &container)
     status = DockerStatus::ServerError;
   }
 
-  // TODO(przemkovv): what to do if we had an error? How to transfer a received
-  // error message?
-  return {status, data, data_error};
+  return {status, {}};
 }
 
 template <typename T>
@@ -264,9 +257,10 @@ ResultJSON DockerSocketClient<T>::stop_container(const Container &container,
   return {status, json::parse(response.data())};
 }
 template <typename T>
-std::tuple<std::string, std::string, int>
-DockerSocketClient<T>::run_command_in_mounted_dir(
-    const std::vector<std::string> &cmd, const fs::path &mount_dir)
+int DockerSocketClient<T>::run_command_in_mounted_dir(
+    const std::vector<std::string> &cmd,
+    const fs::path &mount_dir,
+    IOBuffers &io_buffers)
 {
   auto working_dir = fs::path("/home/sandbox");
   auto create_result = create_container(
@@ -279,7 +273,7 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
   auto start_result = start_container(container);
   throw_if_error(start_result);
 
-  auto attach_result = attach_container(container);
+  auto attach_result = attach_container(container, io_buffers);
   throw_if_error(attach_result);
 
   auto wait_result = wait_container(container);
@@ -287,7 +281,26 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
 
   int exit_code = std::get<1>(wait_result).at("StatusCode");
 
-  return {std::get<1>(attach_result), std::get<2>(attach_result), exit_code};
+  return exit_code;
+}
+
+template <typename T>
+std::tuple<std::string, std::string, int>
+DockerSocketClient<T>::run_command_in_mounted_dir(
+    const std::vector<std::string> &cmd,
+    const fs::path &mount_dir,
+    const std::string &stdin)
+{
+  IOBuffers io_buffers;
+  std::ostream stdin_stream(&io_buffers.input);
+  stdin_stream << stdin;
+
+  auto exit_code = run_command_in_mounted_dir(cmd, mount_dir, io_buffers);
+
+  std::string data_error{std::istreambuf_iterator<char>(&io_buffers.error), {}};
+  std::string data{std::istreambuf_iterator<char>(&io_buffers.output), {}};
+
+  return {data, data_error, exit_code};
 }
 
 template <typename T>
