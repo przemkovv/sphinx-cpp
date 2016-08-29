@@ -70,16 +70,15 @@ void HTTPClient<T>::log_error(const boost::system::error_code &error_code)
   logger->error("{0}: {1}", error_code.value(), error_code.message());
 }
 
-template <typename T> void HTTPClient<T>::write_raw_data()
+template <typename T>
+void HTTPClient<T>::write_raw_data(boost::asio::streambuf &data)
 {
 
-  logger->trace("Write raw data: {} bytes",
-                get_stream(StreamType::stdin)->size());
+  logger->trace("Write raw data: {} bytes", data.size());
   auto self = shared_from_this();
-  boost::asio::async_write(*socket_, *get_stream(StreamType::stdin),
+  boost::asio::async_write(*socket_, data,
                            [this, self](auto &error_code, auto length) {
                              handle_write_raw_data(error_code, length);
-
                            });
 }
 
@@ -202,10 +201,11 @@ template <typename T> void HTTPClient<T>::start_writing_raw_data_thread()
 {
   writing_data_finished_ = true;
   writing_thread_ = std::thread([this]() {
+    auto &data_stream = *get_stream(StreamType::stdin);
     while (!finished_) {
-      if (writing_data_finished_ && get_stream(StreamType::stdin)->size() > 0) {
+      if (writing_data_finished_ && data_stream.size() > 0) {
         writing_data_finished_ = false;
-        this->write_raw_data();
+        this->write_raw_data(data_stream);
       }
       else {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

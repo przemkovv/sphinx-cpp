@@ -257,8 +257,7 @@ ResultJSON DockerSocketClient<T>::stop_container(const Container &container,
   return {status, json::parse(response.data())};
 }
 template <typename T>
-std::tuple<std::string, std::string, int>
-DockerSocketClient<T>::run_command_in_mounted_dir(
+int DockerSocketClient<T>::run_command_in_mounted_dir(
     const std::vector<std::string> &cmd,
     const fs::path &mount_dir,
     IOBuffers &io_buffers)
@@ -277,17 +276,12 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
   auto attach_result = attach_container(container, io_buffers);
   throw_if_error(attach_result);
 
-  std::string data_error{std::istreambuf_iterator<char>(&io_buffers.error), {}};
-  std::string data{std::istreambuf_iterator<char>(&io_buffers.output), {}};
-  logger->debug("Attach container: {0}", data);
-  logger->debug("Attach container (error): {0}", data_error);
-
   auto wait_result = wait_container(container);
   throw_if_error(wait_result);
 
   int exit_code = std::get<1>(wait_result).at("StatusCode");
 
-  return {data, data_error, exit_code};
+  return exit_code;
 }
 
 template <typename T>
@@ -301,7 +295,12 @@ DockerSocketClient<T>::run_command_in_mounted_dir(
   std::ostream stdin_stream(&io_buffers.input);
   stdin_stream << stdin;
 
-  return run_command_in_mounted_dir(cmd, mount_dir, io_buffers);
+  auto exit_code = run_command_in_mounted_dir(cmd, mount_dir, io_buffers);
+
+  std::string data_error{std::istreambuf_iterator<char>(&io_buffers.error), {}};
+  std::string data{std::istreambuf_iterator<char>(&io_buffers.output), {}};
+
+  return {data, data_error, exit_code};
 }
 
 template <typename T>

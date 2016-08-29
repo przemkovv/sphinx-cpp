@@ -18,6 +18,9 @@
 #include <boost/filesystem.hpp>
 #include <fmt/format.h>
 
+#include <future>
+#include <thread>
+
 int main()
 {
   spdlog::set_level(spdlog::level::debug);
@@ -42,12 +45,46 @@ int main()
 
         logger->info("{}", result);
       }
-      {
-        auto result = docker->run_command_in_mounted_dir(
-            {"./echo"}, boost::filesystem::canonical("../data/test_sandbox"),
-            "Hello world\na\nb\nc\n");
+      //{
+      // auto result = docker->run_command_in_mounted_dir(
+      //{"./echo"}, boost::filesystem::canonical("../data/test_sandbox"),
+      //"Hello world\na\nb\nc\n");
 
-        logger->info("{}", result);
+      // logger->info("{}", result);
+      //}
+
+      {
+        Sphinx::Docker::IOBuffers io_buffers;
+
+        auto result = std::async(std::launch::async, [&docker, &io_buffers]() {
+          return docker->run_command_in_mounted_dir(
+              {"./echo"}, boost::filesystem::canonical("../data/test_sandbox"),
+              io_buffers);
+        });
+        result.wait_for(std::chrono::milliseconds(1000));
+
+        {
+          std::ostream stdin_stream(&io_buffers.input);
+
+          std::size_t count = 3;
+          while (count-- > 0) {
+            stdin_stream << std::string(count + 1,
+                                        static_cast<char>('a' + count))
+                         << '\n';
+
+            using namespace std::chrono_literals;
+            result.wait_for(500ms);
+
+            std::string data_error{
+                std::istreambuf_iterator<char>(&io_buffers.error), {}};
+            std::string data{std::istreambuf_iterator<char>(&io_buffers.output),
+                             {}};
+            logger->debug("Command output {0}", data);
+            logger->debug("Command output (error): {0}", data_error);
+          }
+        }
+
+        logger->info("{}", result.get());
       }
       // logger->info("Images:\n{} ", docker.getImages());
     }

@@ -58,14 +58,15 @@ public:
           std::pair<boost::filesystem::path, boost::filesystem::path>>
           &mounting_points) = 0;
   virtual ResultJSON start_container(const Container &container) = 0;
-  virtual ResultJSON attach_container(const Container &container, IOBuffers &io_buffers) = 0;
+  virtual ResultJSON attach_container(const Container &container,
+                                      IOBuffers &io_buffers) = 0;
   virtual ResultJSON inspect_container(const Container &container) = 0;
   virtual ResultJSON remove_container(const Container &container) = 0;
   virtual ResultJSON stop_container(const Container &container,
                                     unsigned int wait_time) = 0;
   virtual ResultJSON wait_container(const Container &container) = 0;
 
-  virtual std::tuple<std::string, std::string, int>
+  virtual int
   run_command_in_mounted_dir(const std::vector<std::string> &cmd,
                              const boost::filesystem::path &mount_dir,
                              IOBuffers &io_buffers) = 0;
@@ -125,17 +126,16 @@ public:
           &mounting_points) override;
   ResultJSON start_container(const Container &container) override;
   ResultJSON attach_container(const Container &container,
-                   IOBuffers &io_buffers) override;
+                              IOBuffers &io_buffers) override;
   ResultJSON inspect_container(const Container &container) override;
   ResultJSON remove_container(const Container &container) override;
   ResultJSON stop_container(const Container &container,
                             unsigned int wait_time) override;
   ResultJSON wait_container(const Container &container) override;
 
-  std::tuple<std::string, std::string, int>
-  run_command_in_mounted_dir(const std::vector<std::string> &cmd,
-                             const boost::filesystem::path &mount_dir,
-                             IOBuffers &io_buffers) override;
+  int run_command_in_mounted_dir(const std::vector<std::string> &cmd,
+                                 const boost::filesystem::path &mount_dir,
+                                 IOBuffers &io_buffers) override;
 
   std::tuple<std::string, std::string, int>
   run_command_in_mounted_dir(const std::vector<std::string> &cmd,

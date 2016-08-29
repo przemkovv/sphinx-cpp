@@ -85,7 +85,6 @@ public:
                    const std::string &data = "",
                    const HTTPHeaders &headers = {});
 
-
   void set_input_stream(boost::asio::streambuf *streambuf)
   {
     input_buffer_ = std::experimental::make_observer(streambuf);
@@ -127,11 +126,11 @@ private:
   void handle_read_headers(const boost::system::error_code &error_code,
                            std::size_t length);
 
-  void write_raw_data();
+  void write_raw_data(boost::asio::streambuf &data);
   void handle_write_raw_data(const boost::system::error_code &error_code,
-                               std::size_t length);
+                             std::size_t length);
 
-             void receive_application_docker_raw_stream();
+  void receive_application_docker_raw_stream();
   void async_read_docker_raw_stream_header();
   void handle_read_docker_raw_stream_header(
       const boost::system::error_code &error_code, std::size_t /*length*/);
@@ -159,7 +158,6 @@ private:
   void forward_data_to_stream(const std::size_t &n,
                               const StreamType &stream_type);
   void forward_data_to_response_data(const std::size_t &n);
-
 
   void start_writing_raw_data_thread();
 
