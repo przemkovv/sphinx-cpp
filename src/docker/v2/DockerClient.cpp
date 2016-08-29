@@ -79,22 +79,7 @@ ResultJSON DockerSocketClient<T>::create_container(
   auto response = client->post("/containers/create", request_data);
   logger->debug("Create container: {0}", response.dump());
 
-  auto status = DockerStatus::UndefiniedError;
-  if (response.status() == HTTPStatus::CREATED) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::BAD_REQUEST) {
-    status = DockerStatus::BadParameter;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::NOT_ACCEPTABLE) {
-    status = DockerStatus::ImpossibleToAttach;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::CreateContainer>(response.status());
   return {status, json::parse(response.data())};
 }
 
@@ -105,20 +90,7 @@ ResultJSON DockerSocketClient<T>::wait_container(const Container &container)
   auto response = client->post(request);
   logger->debug("Waiting for the container: {0}", response.dump());
 
-  auto status = DockerStatus::UndefiniedError;
-  if (response.status() == HTTPStatus::OK) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
-
-  if (response.data().empty()) {
-    return {status, json{}};
-  }
+  auto status = translate_status<DockerOperation::WaitContainer>(response.status());
   return {status, json::parse(response.data())};
 }
 
@@ -129,19 +101,7 @@ ResultJSON DockerSocketClient<T>::start_container(const Container &container)
   auto response = client->post(request);
   logger->debug("Start container: {0}", response.dump());
 
-  auto status = DockerStatus::UndefiniedError;
-  if (response.status() == HTTPStatus::NO_CONTENT) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::SEE_OTHER) {
-    status = DockerStatus::ContainerAlreadyStarted;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::StartContainer>(response.status());
 
   if (response.data().empty()) {
     return {status, json{}};
@@ -168,20 +128,7 @@ ResultJSON DockerSocketClient<T>::attach_container(const Container &container,
   client->use_output_streams(false);
   client->use_input_stream(false);
 
-  auto status = DockerStatus::UndefiniedError;
-  if (response.status() == HTTPStatus::SWITCHING_PROTOCOLS ||
-      response.status() == HTTPStatus::OK) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::BAD_REQUEST) {
-    status = DockerStatus::BadParameter;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::AttachContainer>(response.status());
 
   return {status, {}};
 }
@@ -194,13 +141,7 @@ ResultJSON DockerSocketClient<T>::inspect_container(const Container &container)
 
   logger->debug("Inspect container: {0}", response.data());
 
-  auto status = DockerStatus::NoError;
-  if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::InspectContainer>(response.status());
   return {status, json::parse(response.data())};
 }
 template <typename T>
@@ -210,19 +151,7 @@ ResultJSON DockerSocketClient<T>::remove_container(const Container &container)
   auto response = client->request(HTTPMethod::DELETE, query_path);
   logger->debug("Remove container: {0}", container.id);
 
-  auto status = DockerStatus::NoError;
-  if (response.status() == HTTPStatus::OK) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::BAD_REQUEST) {
-    status = DockerStatus::BadParameter;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::RemoveContainer>(response.status());
   if (response.data().empty()) {
     return {status, json{}};
   }
@@ -238,19 +167,7 @@ ResultJSON DockerSocketClient<T>::stop_container(const Container &container,
   auto response = client->post(query_path);
   logger->debug("Stop container: {0}", container.id);
 
-  auto status = DockerStatus::NoError;
-  if (response.status() == HTTPStatus::NO_CONTENT) {
-    status = DockerStatus::NoError;
-  }
-  else if (response.status() == HTTPStatus::SEE_OTHER) {
-    status = DockerStatus::ContainerAlreadyStopped;
-  }
-  else if (response.status() == HTTPStatus::NOT_FOUND) {
-    status = DockerStatus::NoSuchContainer;
-  }
-  else if (response.status() == HTTPStatus::SERVER_ERROR) {
-    status = DockerStatus::ServerError;
-  }
+  auto status = translate_status<DockerOperation::StopContainer>(response.status());
   if (response.data().empty()) {
     return {status, json{}};
   }

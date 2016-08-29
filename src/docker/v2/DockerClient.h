@@ -3,6 +3,7 @@
 #include "HTTPClient.h"
 
 #include "DockerContainer.h"
+#include "DockerStatus.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
@@ -24,16 +25,6 @@ namespace Sphinx {
 namespace Docker {
 namespace v2 {
 
-enum class DockerStatus {
-  NoError = 0,
-  BadParameter,
-  ServerError,
-  NoSuchContainer,
-  ImpossibleToAttach,
-  ContainerAlreadyStarted,
-  ContainerAlreadyStopped,
-  UndefiniedError
-};
 
 struct IOBuffers {
   boost::asio::streambuf output;
