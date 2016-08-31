@@ -18,17 +18,27 @@ public:
     : Executor(sandbox),
       logger_(make_logger(name())),
       docker_client_(Sphinx::Docker::make_docker_client("/var/run/docker.sock",
-                                                        docker_image))
+                                                        docker_image)),
+      io_streams_(io_buffers_.input, io_buffers_.output, io_buffers_.error)
   {
   }
 
   const char *name() const { return "Sphinx::Executors::DockerExecutor"; }
-  virtual CommandOutput run_sync(std::string stdin = "") override;
+  virtual ExitCode run(const std::vector<std::string> &args ) override;
+
+  virtual IOStreams& get_io_streams() override;
+  virtual void set_timeout(int time) override;
 
 private:
   Logger logger_;
   Logger &logger() { return logger_; }
 
   std::unique_ptr<Sphinx::Docker::DockerClient> docker_client_;
+
+  Sphinx::Docker::v2::IOBuffers io_buffers_;
+  IOStreams io_streams_;
+
+
+
 };
 } // namespace Sphinx::Executors

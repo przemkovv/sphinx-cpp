@@ -196,11 +196,16 @@ void Application::run_client_mode()
 
       logger()->info("Running compiled program");
       auto executor = make_executor(default_executor, sample);
-      auto output = executor->run_sync("Hello World!");
+      auto &io_streams = executor->get_io_streams();
+      io_streams.stdin << "Hello World\n";
+      auto exit_code = executor->run({});
 
-      logger()->debug("Program stdout: {}", output.stdout);
-      logger()->debug("Program stderr: {}", output.stderr);
-      logger()->debug("Program exit code: {}", output.exit_code);
+      std::string stdout(std::istreambuf_iterator<char>(io_streams.stdout), {});
+      std::string stderr(std::istreambuf_iterator<char>(io_streams.stderr), {});
+
+      logger()->debug("Program stdout: {}", stdout);
+      logger()->debug("Program stderr: {}", stderr);
+      logger()->debug("Program exit code: {}", exit_code);
     }
     else {
       logger()->error("Compilation failed.");

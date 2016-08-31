@@ -4,22 +4,21 @@
 #include "process.h"
 namespace Sphinx::Executors {
 
-CommandOutput NativeExecutor::run_sync(std::string stdin)
+ExitCode NativeExecutor::run(const std::vector<std::string> & args)
 {
 
-  procxx::process command(sandbox_.project_executable_path().string(),
-                          sandbox_.project_root_path().string());
+  command_.exec(args);
+  command_.wait();
 
-  command.input() << stdin;
-  command.exec();
-  command.wait();
+  auto exit_code = command_.code();
 
-  auto exit_code = command.code();
 
-  std::string stdout(std::istreambuf_iterator<char>(command.output()), {});
-  std::string stderr(std::istreambuf_iterator<char>(command.error()), {});
-
-  return {stdin, stdout, stderr, exit_code};
+  return exit_code;
 }
+IOStreams &NativeExecutor::get_io_streams()
+{
+  return io_streams_;
+}
+void NativeExecutor::set_timeout(int /*time*/) {}
 
 } // namespace Sphinx::Executors

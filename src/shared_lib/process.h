@@ -30,6 +30,7 @@
 #include <string>
 #include <system_error>
 #include <vector>
+#include <initializer_list>
 
 #ifndef PROCXX_HAS_PIPE2
 #define PROCXX_HAS_PIPE2 1
@@ -424,7 +425,7 @@ class process
      */
     template <class... Args>
     process(std::string application, const std::string& working_dir, Args&&... args)
-        : args_{std::move(application), std::forward<Args>(args)...},
+        : application_(application), args_{std::move(application), std::forward<Args>(args)...},
           working_dir_(working_dir),
           in_stream_{&pipe_buf_},
           out_stream_{&pipe_buf_},
@@ -457,6 +458,12 @@ class process
         read_from_ = &other;
     }
 
+    void exec(const std::vector<std::string> &args) {
+      args_.clear();
+      add_argument(application_);
+      append_arguments(args.begin(), args.end());
+      exec();
+    }
     /**
      * Executes the process.
      */
@@ -716,6 +723,18 @@ class process
         return proc.in_stream_ << input;
     }
 
+    std::streambuf& input_buffer() {
+      return pipe_buf_;
+    }
+
+    std::streambuf& output_buffer() {
+      return pipe_buf_;
+    }
+
+    std::streambuf& error_buffer() {
+      return err_buf_;
+    }
+
     /**
      * Conversion to std::ostream.
      */
@@ -767,6 +786,7 @@ class process
             read_from_->recursive_close_stdin();
     }
 
+    std::string application_;
     std::vector<std::string> args_;
     std::string working_dir_;
     process* read_from_ = nullptr;
