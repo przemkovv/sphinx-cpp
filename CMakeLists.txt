@@ -10,6 +10,7 @@ add_definitions(
     #-Wall
     -Weverything
     -Wno-c++98-compat
+    -Wno-c++98-compat-pedantic
     -Wno-exit-time-destructors
     -Wno-global-constructors
     -Wno-padded
