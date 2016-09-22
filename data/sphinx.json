@@ -1,6 +1,6 @@
 {
   "compilers": {
-    "default": "docker-g++",
+    "default": "clang++",
     "clang++" : {
       "flags" : [
         "-std=c++14",
@@ -28,7 +28,7 @@
     }
   },
   "executors": {
-    "default": "docker-container",
+    "default": "native",
     "native": {},
     "docker-container": {
       "image-name": "sphinx-docker" 

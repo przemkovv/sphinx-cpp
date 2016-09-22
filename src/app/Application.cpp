@@ -16,6 +16,7 @@
 
 #include "Net/Server.h"
 
+
 #include <iostream>
 
 #include <chrono>
@@ -82,18 +83,6 @@ void Application::configure_logger(spdlog::level::level_enum log_level)
                     it.value().get<int>());
     make_logger(it.key(),
                 static_cast<spdlog::level::level_enum>(it.value().get<int>()));
-  }
-}
-
-void Application::run_server_mode()
-{
-  logger()->info("I'm a server");
-  Net::Server server;
-  server.listen();
-  using namespace std::chrono_literals;
-  while (true) {
-    logger()->info("Going sleep...");
-    std::this_thread::sleep_for(1000ms);
   }
 }
 
@@ -167,6 +156,23 @@ Application::make_executor(std::string name, const Sandbox &sandbox)
     return std::make_unique<Executors::DockerExecutor>(sandbox, docker_image);
   }
   return {};
+}
+
+
+void Application::run_server_mode()
+{
+  auto default_compiler =
+      config_["/compilers/default"_json_pointer].get<std::string>();
+
+  auto compiler = make_compiler(default_compiler);
+  if (!compiler)
+    return;
+
+  logger()->info("I'm a server");
+  Sphinx::Net::Server server;
+  server.set_compiler(std::move(compiler));
+  server.listen();
+  logger()->info("I'm quitting.");
 }
 
 void Application::run_client_mode()

@@ -28,7 +28,7 @@ class Application {
 protected:
   void configure_logger(spdlog::level::level_enum level);
   void run_client_mode();
-  [[noreturn]] void run_server_mode();
+  void run_server_mode();
 
   po::options_description prepare_options_description_cli();
   po::variables_map
