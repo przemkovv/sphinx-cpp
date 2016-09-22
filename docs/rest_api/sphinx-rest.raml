@@ -4,54 +4,159 @@ title: Sphinx REST API
 baseUri: http://api.sphinx.put.poznan.pl/{version}
 version: v1
 
-/users:
-    get:
-    post:
-    /{user_name}:
-        get:
-        put:
-        delete:
-
-/students:
-    get:
-        description: |
-            Get a list of students.
-    post:
-    /{student_id}:
-        get:
-        /courses:
-            get:
-                description: |
-                    Get a list of courses that the student be enrolled.
-            post:
-            /{course_name}:
-                get:
-                    description: |
-                        Get info about the student's course.
-                /units:
-                    get:
-                    /{unit_name}:
-                        
-
 /solutions:
-    /{solution_id}:
-        get:
-        put:
-        delete:
-        /compiler_output:
-            get:
-        /results:
-            get:
-        
-/courses:
-    /{course_name}:
+  post:
+    description: Send source files with solution.
+    body:
+      application/json: 
+        example: |
+          { 
+            "type": "cpp",
+            [
+              {
+                "filename": "main.cpp",
+                "content": "int main() { return 0;}"
+              },
+              {
+                "filename": "foo.cpp",
+                "content": "int foo() { return 1; }"
+              }
+            ]
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              { "solution_id": "a3ef3a" }
+  /{solution_id}:
     get:
-    post:
-    /units:
-        /{unit_name}:
+      description: Retrieve the solution.
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                { 
+                  "type": "cpp",
+                  [
+                    {
+                      "filename": "main.cpp",
+                      "content": "int main() { return 0;}"
+                    },
+                    {
+                      "filename": "foo.cpp",
+                      "content": "int foo() { return 1; }"
+                    }
+                  ]
+                }
+    delete:
+      description: Deletes solution from the server.
+    /compiler_output:
+      get:
+        description: Compile the solution and retrieve the compiler output.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  {
+                    "output": "",
+                    "errors": "",
+                    "compilation_successfull": true
+                  }
+          304:
+            body:
+              application/json:
+                example: |
+                  {
+                    "output": "",
+                    "errors": "error on line 13",
+                    "compilation_successfull": false
+                  }
+    /execution_result:
+      /{testcase_id}:
         get:
-        post:
-        /tasks:
-            /{task_name}:
-            get:
-            post:
+          description: Execute the {testcase_id} with the {solution_id}.
+          responses:
+            200:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "test_passed": true,
+                      "testcase_id": "234234t61"
+                    }
+            304:
+              body:
+                application/json:
+                  example: |
+                    {
+                      "test_passed": false,
+                      "testcase_id": "234234t61",
+                      "stdout": "something",
+                      "expected_stdout": "SOMETHING",
+                      "stderr": "something",
+                      "expected_stderr": "SOMETHING"
+                    }
+
+/testcases:
+  get:
+    description: Returns list of testcases.
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [
+                {
+                  "id": "342fasdf123",
+                  "description": "Testing echo",
+                  "stdin": "something",
+                  "expected_stdout": "something",
+                  "expected_stderr": "something"
+                },
+                {
+                  "id": "234234t61",
+                  "description": "Testing uppercase echo",
+                  "stdin": "something",
+                  "expected_stdout": "SOMETHING",
+                  "expected_stderr": "SOMETHING"
+                }
+              ]
+  post:
+    description: Create a test case consisting of the input and expected results.
+    body:
+      application/json:
+        example: |
+          {
+            "description": "Testing echo",
+            "stdin": "something",
+            "expected_stdout": "something",
+            "expected_stderr": "something"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "id": "342fasdf123"
+              }
+  /{testcase_id}:
+    get:
+      description: Get testcase with the given id.
+      responses:
+        200:
+          body:
+            application/json: 
+              example: |
+                {
+                  "id": "342fasdf123",
+                  "description": "Testing echo",
+                  "stdin": "something",
+                  "expected_stdout": "something",
+                  "expected_stderr": "something"
+                }
+    delete:
+      description: Deletes the testcase.
