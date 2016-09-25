@@ -19,10 +19,12 @@ schemas:
   - TestStatus: !include schema/test_status.json
 
 /solutions:
+  description: Manage the solutions.
   get:
     description: Get list of solutions.
     responses:
       200:
+        description: Successful retrieve of all solutions.
         body:
           application/json:
             schema: Solutions
@@ -35,15 +37,18 @@ schemas:
         example: !include samples/solution-new.json
     responses:
       201:
+        description: Solution has been created.
         body:
           application/json:
             schema: SolutionCreateResponse
             example: !include samples/solution_create_response.json
   /{solution_id}:
+    description: Manages the solution with id {solution_id}.
     get:
       description: Retrieve the solution.
       responses:
         200:
+          description: Solution exists and has been returned.
           body:
             application/json:
               schema: Solution
@@ -52,27 +57,38 @@ schemas:
       description: Deletes solution from the server.
       responses:
         204:
+          description: Solution has been removed.
+          body:
+            application/json:
+              schema: Solution
+              example: |
+                { }
+
     /compiler_output:
+      description: Allows to retrieve results of the solution compilation.
       get:
         description: Compile the solution and retrieve the compiler output.
         responses:
           200:
+            description: Compilation has been finished without errors.
             body:
               application/json:
                 schema: CompilerOutput
                 example: !include samples/compiler_output-retrieve-good.json
-                  
           304:
+            description: Compilation has been finished with errors.
             body:
               application/json:
                 schema: CompilerOutput
                 example: !include samples/compiler_output-retrieve-error.json
-                  
+
 /testcases:
+  description: Manages the test cases.
   get:
     description: Returns list of testcases.
     responses:
       200:
+        description: The list of testcases has been successfully retrieved.
         body:
           application/json:
             schema: Testcases
@@ -86,28 +102,41 @@ schemas:
         example: !include samples/testcase-new.json
     responses:
       200:
+        description: Test case has been created.
         body:
           application/json:
             schema: TestcaseCreateResponse
             example: !include samples/testcase_create_response.json
-              
+
   /{testcase_id}:
+    description: Manage the test case with the given id {testcase_id}.
     get:
       description: Get testcase with the given id.
       responses:
         200:
+          description: Testcase has been returned.
           body:
             application/json:
               schema: Testcase
               example: !include samples/testcase-retrieve.json
     delete:
       description: Deletes the testcase.
+      responses:
+        204:
+          description: Test case has been deleted.
+          body:
+            application/json:
+              schema: Testcase
+              example: |
+                { }
 
 /tests:
+  description: Manages the tests.
   get:
     description: List delegated tests.
     responses:
       200:
+        description: The list of tests has been returned.
         body:
           application/json:
             schema: Tests
@@ -120,20 +149,24 @@ schemas:
         example: !include samples/test-new.json
     responses:
       202:
+        description: The test has been assigned to perform.
         body:
           application/json:
             schema: TestStatus
             example: !include samples/test_status-new.json
   /{test_id}:
+    description: Manages the test with given id {given_id}.
     get:
       description: Returns status of the performed test.
       responses:
         200:
+          description: Test has been completed.
           body:
             application/json:
               schema: TestStatus
               example: !include samples/test_status-retrieve-finished.json
         202:
+          description: Test is still pending.
           body:
             application/json:
               schema: TestStatus
