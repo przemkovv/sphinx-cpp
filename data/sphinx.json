@@ -1,4 +1,8 @@
 {
+  "server": {
+    "port": 9999,
+    "version": "v1"
+  },
   "compilers": {
     "default": "clang++",
     "clang++" : {

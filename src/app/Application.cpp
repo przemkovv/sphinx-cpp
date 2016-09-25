@@ -168,8 +168,11 @@ void Application::run_server_mode()
   if (!compiler)
     return;
 
+  auto port =
+      config_["/server/port"_json_pointer].get<uint16_t>();
+
   logger()->info("I'm a server");
-  Sphinx::Net::Server server;
+  Sphinx::Net::Server server(port);
   server.set_compiler(std::move(compiler));
   server.listen();
   logger()->info("I'm quitting.");
