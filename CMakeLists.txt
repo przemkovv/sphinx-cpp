@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(Sphinx)
 
+enable_testing()
+
 
 add_definitions(
     -std=c++1z
@@ -41,5 +43,4 @@ add_subdirectory(src/app)
 add_subdirectory(src/docker_tests)
 #add_subdirectory(src/tests)
 
-
-
+add_test(NAME rest_api COMMAND abao ${CMAKE_SOURCE_DIR}/docs/rest_api/sphinx-rest.raml --server http://localhost:9999)

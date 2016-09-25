@@ -1,18 +1,277 @@
 #%RAML 0.8
 ---
 title: Sphinx REST API
-baseUri: http://api.sphinx.put.poznan.pl/{version}
+baseUri: http://localhost:9999/{version}
 version: v1
+mediaType: application/json
+protocols: [HTTP]
+
+schemas:
+  - Solution: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "type": {
+            "description": "Type of the project (cpp, java)",
+            "type": "string",
+            "required": true
+          },
+          "files": {
+            "type": "array",
+            "required": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": {
+                  "description": "Name of the filename",
+                  "type": "string",
+                  "required": true
+                },
+                "content": {
+                  "description": "Content of the file",
+                  "type": "string",
+                  "required": true
+                }
+              }
+            },
+            "minItems": 1
+          }
+        }
+      }
+  - Solutions: |
+      {
+        "type": "array",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": false,
+        "items": {
+          "type": "object",
+          "properties": {
+            "solution_id": {
+              "description": "Id of the solution",
+              "type": "string",
+              "required": true
+            }
+          }
+        },
+        "minItems": 0
+      }
+  - SolutionCreateResponse: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "solution_id": {
+            "description": "Id of the solution",
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+  - CompilerOutput: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "output": {
+            "description": "Output of the compiler",
+            "type": "string",
+            "required": false
+          },
+          "errors": {
+            "description": "Errors from the compiler",
+            "type": "string",
+            "required": false
+          },
+          "compilation_successfull": {
+            "description": "Is the compilation successfull",
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+  - Testcases: |
+      {
+        "type": "array",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "description": "Identifier of the testcase.",
+              "type": "string",
+              "required": false
+            },
+            "description": {
+              "description": "Description of the testcase",
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      }
+  - Testcase: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "id": {
+            "description": "Identifier of the testcase.",
+            "type": "string",
+            "required": false
+          },
+          "description": {
+            "description": "Description of the testcase",
+            "type": "string",
+            "required": true
+          },
+          "stdin": {
+            "description": "Data passed to the standard input",
+            "type": "string",
+            "required": false
+          },
+          "expected_stdout": {
+            "description": "Expected output of the program",
+            "type": "string",
+            "required": false
+          },
+          "expected_stderror": {
+            "description": "Expected error output of the program",
+            "type": "string",
+            "required": false
+          }
+        }
+      }
+  - TestcaseCreateResponse: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "id": {
+            "description": "Identifier of the testcase",
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+  - Tests: |
+      {
+        "type": "array",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "testcase_id": {
+              "description": "Identifier of the testcase",
+              "type": "string",
+              "required": true
+            },
+            "solution_id": {
+              "description": "Identifier of the solution",
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      }
+  - Test: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "testcase_id": {
+            "description": "Identifier of the testcase",
+            "type": "string",
+            "required": true
+          },
+          "solution_id": {
+            "description": "Identifier of the solution",
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+  - TestStatus: |
+      {
+        "type": "object",
+        "$schema": "http://json-schema.org/draft-03/schema",
+        "id": "http://jsonschema.net",
+        "required": true,
+        "properties": {
+          "test_id": {
+            "description": "Identifier of the test",
+            "type": "string",
+            "required": false
+          },
+          "testcase_id": {
+            "description": "Identifier of the testcase",
+            "type": "string",
+            "required": true
+          },
+          "solution_id": {
+            "description": "Identifier of the solution",
+            "type": "string",
+            "required": true
+          },
+          "status": {
+            "description": "Status of the test evaluation",
+            "type": "string",
+            "required": true,
+            "enum": [ "created", "pending", "finished" ]
+          },
+          "stdout": {
+            "description": "Output of the program.",
+            "type": "string",
+            "required": false
+          },
+          "stderr": {
+            "description": "Error output of the program.",
+            "type": "string",
+            "required": false
+          },
+          "passed": {
+            "description": "Has the test been passed.",
+            "type": "boolean",
+            "required": false
+          }
+        }
+      }
 
 /solutions:
+  get:
+    description: Get list of solutions.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Solutions
+      
   post:
     description: Send source files with solution.
     body:
-      application/json: 
+      application/json:
+        schema: Solution
         example: |
-          { 
+          {
             "type": "cpp",
-            [
+            "files": [
               {
                 "filename": "main.cpp",
                 "content": "int main() { return 0;}"
@@ -24,11 +283,14 @@ version: v1
             ]
           }
     responses:
-      200:
+      201:
         body:
           application/json:
+            schema: SolutionCreateResponse
             example: |
-              { "solution_id": "a3ef3a" }
+              {
+                "solution_id": "a3ef3a"
+              }
   /{solution_id}:
     get:
       description: Retrieve the solution.
@@ -36,10 +298,11 @@ version: v1
         200:
           body:
             application/json:
+              schema: Solution
               example: |
-                { 
+                {
                   "type": "cpp",
-                  [
+                  "files": [
                     {
                       "filename": "main.cpp",
                       "content": "int main() { return 0;}"
@@ -52,6 +315,8 @@ version: v1
                 }
     delete:
       description: Deletes solution from the server.
+      responses:
+        204:
     /compiler_output:
       get:
         description: Compile the solution and retrieve the compiler output.
@@ -59,6 +324,7 @@ version: v1
           200:
             body:
               application/json:
+                schema: CompilerOutput
                 example: |
                   {
                     "output": "",
@@ -68,38 +334,13 @@ version: v1
           304:
             body:
               application/json:
+                schema: CompilerOutput
                 example: |
                   {
                     "output": "",
                     "errors": "error on line 13",
                     "compilation_successfull": false
                   }
-    /execution_result:
-      /{testcase_id}:
-        get:
-          description: Execute the {testcase_id} with the {solution_id}.
-          responses:
-            200:
-              body:
-                application/json:
-                  example: |
-                    {
-                      "test_passed": true,
-                      "testcase_id": "234234t61"
-                    }
-            304:
-              body:
-                application/json:
-                  example: |
-                    {
-                      "test_passed": false,
-                      "testcase_id": "234234t61",
-                      "stdout": "something",
-                      "expected_stdout": "SOMETHING",
-                      "stderr": "something",
-                      "expected_stderr": "SOMETHING"
-                    }
-
 /testcases:
   get:
     description: Returns list of testcases.
@@ -107,6 +348,7 @@ version: v1
       200:
         body:
           application/json:
+            schema: Testcases
             example: |
               [
                 {
@@ -125,9 +367,11 @@ version: v1
                 }
               ]
   post:
-    description: Create a test case consisting of the input and expected results.
+    description: |
+      Create a test case consisting of the input and expected results.
     body:
       application/json:
+        schema: Testcase
         example: |
           {
             "description": "Testing echo",
@@ -139,6 +383,7 @@ version: v1
       200:
         body:
           application/json:
+            schema: TestcaseCreateResponse
             example: |
               {
                 "id": "342fasdf123"
@@ -149,7 +394,8 @@ version: v1
       responses:
         200:
           body:
-            application/json: 
+            application/json:
+              schema: Testcase
               example: |
                 {
                   "id": "342fasdf123",
@@ -160,3 +406,71 @@ version: v1
                 }
     delete:
       description: Deletes the testcase.
+/tests:
+  get:
+    description: List delegated tests.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Tests
+            example: |
+              [
+                {
+                  "test_id": "04a324",
+                  "solution_id": "a3ef3a",
+                  "testcase_id": "342fasdf123"
+                },
+                {
+                  "test_id": "04a324",
+                  "solution_id": "a3ef3a",
+                  "testcase_id": "342fasdf123"
+                }
+              ]
+  post:
+    description: Assign test to perform.
+    body:
+      application/json:
+        schema: Test
+        example: |
+          {
+            "solution_id": "a3ef3a",
+            "testcase_id": "342fasdf123"
+          }
+    responses:
+      202:
+        body:
+          application/json:
+            schema: TestStatus
+            example: |
+              {
+                "test_id": "04a324",
+                "status": "pending",
+                "testcase_id": "234234t61",
+                "solution_id": "a3ef3a"
+              }
+  /{test_id}:
+    get:
+      description: Returns status of the performed test.
+      responses:
+        200:
+          body:
+            application/json:
+              schema: TestStatus
+              example: |
+                {
+                  "test_id": "04a324",
+                  "status": "finished",
+                  "passed": false,
+                  "testcase_id": "234234t61",
+                  "solution_id": "a3ef3a",
+                  "stdout": "something",
+                  "stderr": "something",
+                }
+        202:
+          body:
+            application/json:
+              schema: TestStatus
+              example: |
+                {
+                  "test_id": "04a324",
