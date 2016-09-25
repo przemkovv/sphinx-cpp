@@ -1,0 +1,44 @@
+[
+  {
+    "solution_id": "s1",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 0;}"
+      },
+      {
+        "filename": "foo.cpp",
+        "content": "int foo() { return 1; }"
+      }
+    ]
+  },
+  {
+    "solution_id": "s2",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 2;}"
+      },
+      {
+        "filename": "foo.cpp",
+        "content": "int foo() { return 4; }"
+      }
+    ]
+  },
+  {
+    "solution_id": "s3",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 0;}"
+      },
+      {
+        "filename": "bar.cpp",
+        "content": "int bar() { return 1; }"
+      }
+    ]
+  }
+]

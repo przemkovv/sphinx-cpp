@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "test_id": {
+      "description": "Identifier of the test",
+      "type": "string",
+      "required": false
+    },
+    "testcase_id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "description": "Status of the test evaluation",
+      "type": "string",
+      "required": true,
+      "enum": [ "created", "pending", "finished" ]
+    },
+    "stdout": {
+      "description": "Output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "stderr": {
+      "description": "Error output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "passed": {
+      "description": "Has the test been passed.",
+      "type": "boolean",
+      "required": false
+    }
+  }
+}

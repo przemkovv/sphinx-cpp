@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "id": {
+      "description": "Identifier of the testcase.",
+      "type": "string",
+      "required": false
+    },
+    "description": {
+      "description": "Description of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "stdin": {
+      "description": "Data passed to the standard input",
+      "type": "string",
+      "required": false
+    },
+    "expected_stdout": {
+      "description": "Expected output of the program",
+      "type": "string",
+      "required": false
+    },
+    "expected_stderror": {
+      "description": "Expected error output of the program",
+      "type": "string",
+      "required": false
+    }
+  }
+}

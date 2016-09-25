@@ -1,0 +1,17 @@
+{
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": false,
+  "items": {
+    "type": "object",
+    "properties": {
+      "solution_id": {
+        "description": "Id of the solution",
+        "type": "string",
+        "required": true
+      }
+    }
+  },
+  "minItems": 0
+}

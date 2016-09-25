@@ -1,0 +1,7 @@
+{
+  "testcase_id": "342fasdf123",
+  "description": "Testing echo",
+  "stdin": "something",
+  "expected_stdout": "something",
+  "expected_stderr": "something"
+}

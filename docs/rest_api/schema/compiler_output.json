@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "output": {
+      "description": "Output of the compiler",
+      "type": "string",
+      "required": false
+    },
+    "errors": {
+      "description": "Errors from the compiler",
+      "type": "string",
+      "required": false
+    },
+    "compilation_successfull": {
+      "description": "Is the compilation successfull",
+      "type": "string",
+      "required": true
+    }
+  }
+}

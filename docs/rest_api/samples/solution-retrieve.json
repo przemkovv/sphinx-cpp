@@ -1,0 +1,14 @@
+{
+  "solution_id": "s1",
+  "type": "cpp",
+  "files": [
+    {
+      "filename": "main.cpp",
+      "content": "int main() { return 0;}"
+    },
+    {
+      "filename": "foo.cpp",
+      "content": "int foo() { return 1; }"
+    }
+  ]
+}

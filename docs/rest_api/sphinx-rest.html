@@ -151,9 +151,108 @@
         word-wrap: normal;
         white-space: pre;
       }
-    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Sphinx REST API API documentation <small>version v1</small></h1><p>http://api.sphinx.put.poznan.pl/v1</p></div><div class="panel panel-default"><div class="panel-heading"><h3 id="solutions" class="panel-title">/solutions</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions"><span class="parent"></span>/solutions</a> <span class="methods"><a href="#solutions_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_solutions" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Send source files with solution.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/solutions</h4></div><div class="modal-body"><div class="alert alert-info"><p>Send source files with solution.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions_post_request" data-toggle="tab">Request</a></li><li><a href="#solutions_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{ 
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Sphinx REST API API documentation <small>version v1</small></h1><p>http://localhost:9999/v1</p></div><div class="panel panel-default"><div class="panel-heading"><h3 id="solutions" class="panel-title">/solutions</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions"><span class="parent"></span>/solutions</a> <span class="methods"><a href="#solutions_get"><span class="badge badge_get">get</span></a> <a href="#solutions_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_solutions" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Get list of solutions.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#solutions_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Send source files with solution.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/solutions</h4></div><div class="modal-body"><div class="alert alert-info"><p>Get list of solutions.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": false,
+  "items": {
+    "type": "object",
+    "properties": {
+      "solution_id": {
+        "description": "Id of the solution",
+        "type": "string",
+        "required": true
+      }
+    }
+  },
+  "minItems": 0
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>[
+  {
+    "solution_id": "s1",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 0;}"
+      },
+      {
+        "filename": "foo.cpp",
+        "content": "int foo() { return 1; }"
+      }
+    ]
+  },
+  {
+    "solution_id": "s2",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 2;}"
+      },
+      {
+        "filename": "foo.cpp",
+        "content": "int foo() { return 4; }"
+      }
+    ]
+  },
+  {
+    "solution_id": "s3",
+    "type": "cpp",
+    "files": [
+      {
+        "filename": "main.cpp",
+        "content": "int main() { return 0;}"
+      },
+      {
+        "filename": "bar.cpp",
+        "content": "int bar() { return 1; }"
+      }
+    ]
+  }
+]
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/solutions</h4></div><div class="modal-body"><div class="alert alert-info"><p>Send source files with solution.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions_post_request" data-toggle="tab">Request</a></li><li><a href="#solutions_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": false
+    },
+    "type": {
+      "description": "Type of the project (cpp, java)",
+      "type": "string",
+      "required": true
+    },
+    "files": {
+      "type": "array",
+      "required": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "description": "Name of the filename",
+            "type": "string",
+            "required": true
+          },
+          "content": {
+            "description": "Content of the file",
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "minItems": 1
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
   "type": "cpp",
-  [
+  "files": [
     {
       "filename": "main.cpp",
       "content": "int main() { return 0;}"
@@ -164,10 +263,64 @@
     }
   ]
 }
-</code></pre></div><div class="tab-pane" id="solutions_post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{ "solution_id": "a3ef3a" }
-</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions__solution_id_"><span class="parent">/solutions</span>/{solution_id}</a> <span class="methods"><a href="#solutions__solution_id__get"><span class="badge badge_get">get</span></a> <a href="#solutions__solution_id__delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel_solutions__solution_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions__solution_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Retrieve the solution.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#solutions__solution_id__delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"><p>Deletes solution from the server.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/solutions</span>/{solution_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Retrieve the solution.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__get_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__get_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{ 
+</code></pre></div><div class="tab-pane" id="solutions_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "solution_id": {
+      "description": "Id of the solution",
+      "type": "string",
+      "required": true
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "solution_id": "a3ef3a"
+}
+</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions__solution_id_"><span class="parent">/solutions</span>/{solution_id}</a> <span class="methods"><a href="#solutions__solution_id__get"><span class="badge badge_get">get</span></a> <a href="#solutions__solution_id__delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel_solutions__solution_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions__solution_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Retrieve the solution.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#solutions__solution_id__delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"><p>Deletes solution from the server.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/solutions</span>/{solution_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Retrieve the solution.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__get_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__get_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": false
+    },
+    "type": {
+      "description": "Type of the project (cpp, java)",
+      "type": "string",
+      "required": true
+    },
+    "files": {
+      "type": "array",
+      "required": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "description": "Name of the filename",
+            "type": "string",
+            "required": true
+          },
+          "content": {
+            "description": "Content of the file",
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "minItems": 1
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "solution_id": "s1",
   "type": "cpp",
-  [
+  "files": [
     {
       "filename": "main.cpp",
       "content": "int main() { return 0;}"
@@ -178,29 +331,84 @@
     }
   ]
 }
-</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent">/solutions</span>/{solution_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Deletes solution from the server.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__delete_request" data-toggle="tab">Request</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__delete_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions__solution_id__compiler_output"><span class="parent">/solutions/{solution_id}</span>/compiler_output</a> <span class="methods"><a href="#solutions__solution_id__compiler_output_get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_solutions__solution_id__compiler_output" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions__solution_id__compiler_output_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Compile the solution and retrieve the compiler output.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__compiler_output_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/solutions/{solution_id}</span>/compiler_output</h4></div><div class="modal-body"><div class="alert alert-info"><p>Compile the solution and retrieve the compiler output.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__compiler_output_get_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__compiler_output_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__compiler_output_get_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__compiler_output_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent">/solutions</span>/{solution_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Deletes solution from the server.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__delete_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__delete_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions__solution_id__compiler_output"><span class="parent">/solutions/{solution_id}</span>/compiler_output</a> <span class="methods"><a href="#solutions__solution_id__compiler_output_get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_solutions__solution_id__compiler_output" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions__solution_id__compiler_output_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Compile the solution and retrieve the compiler output.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__compiler_output_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/solutions/{solution_id}</span>/compiler_output</h4></div><div class="modal-body"><div class="alert alert-info"><p>Compile the solution and retrieve the compiler output.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__compiler_output_get_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__compiler_output_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__compiler_output_get_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__compiler_output_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "output": {
+      "description": "Output of the compiler",
+      "type": "string",
+      "required": false
+    },
+    "errors": {
+      "description": "Errors from the compiler",
+      "type": "string",
+      "required": false
+    },
+    "compilation_successfull": {
+      "description": "Is the compilation successfull",
+      "type": "string",
+      "required": true
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
   "output": "",
   "errors": "",
   "compilation_successfull": true
 }
-</code></pre><h2>HTTP status code <a href="http://httpstatus.es/304" target="_blank">304</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+</code></pre><h2>HTTP status code <a href="http://httpstatus.es/304" target="_blank">304</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "output": {
+      "description": "Output of the compiler",
+      "type": "string",
+      "required": false
+    },
+    "errors": {
+      "description": "Errors from the compiler",
+      "type": "string",
+      "required": false
+    },
+    "compilation_successfull": {
+      "description": "Is the compilation successfull",
+      "type": "string",
+      "required": true
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
   "output": "",
   "errors": "error on line 13",
   "compilation_successfull": false
 }
-</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_solutions__solution_id__execution_result__testcase_id_"><span class="parent">/solutions/{solution_id}/execution_result</span>/{testcase_id}</a> <span class="methods"><a href="#solutions__solution_id__execution_result__testcase_id__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_solutions__solution_id__execution_result__testcase_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#solutions__solution_id__execution_result__testcase_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Execute the {testcase_id} with the {solution_id}.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="solutions__solution_id__execution_result__testcase_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/solutions/{solution_id}/execution_result</span>/{testcase_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Execute the {testcase_id} with the {solution_id}.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#solutions__solution_id__execution_result__testcase_id__get_request" data-toggle="tab">Request</a></li><li><a href="#solutions__solution_id__execution_result__testcase_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="solutions__solution_id__execution_result__testcase_id__get_request"><h3>URI Parameters</h3><ul><li><strong>solution_id</strong>: <em>required (string)</em></li><li><strong>testcase_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="solutions__solution_id__execution_result__testcase_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
-  "test_passed": true,
-  "testcase_id": "234234t61"
+</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="testcases" class="panel-title">/testcases</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_testcases"><span class="parent"></span>/testcases</a> <span class="methods"><a href="#testcases_get"><span class="badge badge_get">get</span></a> <a href="#testcases_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_testcases" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#testcases_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Returns list of testcases.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#testcases_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Create a test case consisting of the input and expected results.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/testcases</h4></div><div class="modal-body"><div class="alert alert-info"><p>Returns list of testcases.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "items": {
+    "type": "object",
+    "properties": {
+      "testcase_id": {
+        "description": "Identifier of the testcase.",
+        "type": "string",
+        "required": true
+      },
+      "description": {
+        "description": "Description of the testcase",
+        "type": "string",
+        "required": true
+      }
+    }
+  }
 }
-</code></pre><h2>HTTP status code <a href="http://httpstatus.es/304" target="_blank">304</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
-  "test_passed": false,
-  "testcase_id": "234234t61",
-  "stdout": "something",
-  "expected_stdout": "SOMETHING",
-  "stderr": "something",
-  "expected_stderr": "SOMETHING"
-}
-</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="testcases" class="panel-title">/testcases</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_testcases"><span class="parent"></span>/testcases</a> <span class="methods"><a href="#testcases_get"><span class="badge badge_get">get</span></a> <a href="#testcases_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_testcases" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#testcases_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Returns list of testcases.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#testcases_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Create a test case consisting of the input and expected results.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/testcases</h4></div><div class="modal-body"><div class="alert alert-info"><p>Returns list of testcases.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>[
+</code></pre><p><strong>Example</strong>:</p><pre><code>[
   {
     "id": "342fasdf123",
     "description": "Testing echo",
@@ -216,20 +424,306 @@
     "expected_stderr": "SOMETHING"
   }
 ]
-</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/testcases</h4></div><div class="modal-body"><div class="alert alert-info"><p>Create a test case consisting of the input and expected results.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases_post_request" data-toggle="tab">Request</a></li><li><a href="#testcases_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/testcases</h4></div><div class="modal-body"><div class="alert alert-info"><p>Create a test case consisting of the input and expected results.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases_post_request" data-toggle="tab">Request</a></li><li><a href="#testcases_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "id": {
+      "description": "Identifier of the testcase.",
+      "type": "string",
+      "required": false
+    },
+    "description": {
+      "description": "Description of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "stdin": {
+      "description": "Data passed to the standard input",
+      "type": "string",
+      "required": false
+    },
+    "expected_stdout": {
+      "description": "Expected output of the program",
+      "type": "string",
+      "required": false
+    },
+    "expected_stderror": {
+      "description": "Expected error output of the program",
+      "type": "string",
+      "required": false
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
   "description": "Testing echo",
   "stdin": "something",
   "expected_stdout": "something",
   "expected_stderr": "something"
 }
-</code></pre></div><div class="tab-pane" id="testcases_post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
+</code></pre></div><div class="tab-pane" id="testcases_post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
   "id": "342fasdf123"
 }
-</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_testcases__testcase_id_"><span class="parent">/testcases</span>/{testcase_id}</a> <span class="methods"><a href="#testcases__testcase_id__get"><span class="badge badge_get">get</span></a> <a href="#testcases__testcase_id__delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel_testcases__testcase_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#testcases__testcase_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Get testcase with the given id.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#testcases__testcase_id__delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"><p>Deletes the testcase.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases__testcase_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/testcases</span>/{testcase_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Get testcase with the given id.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases__testcase_id__get_request" data-toggle="tab">Request</a></li><li><a href="#testcases__testcase_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases__testcase_id__get_request"><h3>URI Parameters</h3><ul><li><strong>testcase_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="testcases__testcase_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{
-  "id": "342fasdf123",
+</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_testcases__testcase_id_"><span class="parent">/testcases</span>/{testcase_id}</a> <span class="methods"><a href="#testcases__testcase_id__get"><span class="badge badge_get">get</span></a> <a href="#testcases__testcase_id__delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel_testcases__testcase_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#testcases__testcase_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Get testcase with the given id.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#testcases__testcase_id__delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"><p>Deletes the testcase.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases__testcase_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/testcases</span>/{testcase_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Get testcase with the given id.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases__testcase_id__get_request" data-toggle="tab">Request</a></li><li><a href="#testcases__testcase_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases__testcase_id__get_request"><h3>URI Parameters</h3><ul><li><strong>testcase_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="testcases__testcase_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "id": {
+      "description": "Identifier of the testcase.",
+      "type": "string",
+      "required": false
+    },
+    "description": {
+      "description": "Description of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "stdin": {
+      "description": "Data passed to the standard input",
+      "type": "string",
+      "required": false
+    },
+    "expected_stdout": {
+      "description": "Expected output of the program",
+      "type": "string",
+      "required": false
+    },
+    "expected_stderror": {
+      "description": "Expected error output of the program",
+      "type": "string",
+      "required": false
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "testcase_id": "342fasdf123",
   "description": "Testing echo",
   "stdin": "something",
   "expected_stdout": "something",
   "expected_stderr": "something"
 }
-</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases__testcase_id__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent">/testcases</span>/{testcase_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Deletes the testcase.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases__testcase_id__delete_request" data-toggle="tab">Request</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases__testcase_id__delete_request"><h3>URI Parameters</h3><ul><li><strong>testcase_id</strong>: <em>required (string)</em></li></ul></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#solutions">/solutions</a></li><li><a href="#testcases">/testcases</a></li></ul></div></div></div></div></body></html>
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="testcases__testcase_id__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent">/testcases</span>/{testcase_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Deletes the testcase.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#testcases__testcase_id__delete_request" data-toggle="tab">Request</a></li></ul><div class="tab-content"><div class="tab-pane active" id="testcases__testcase_id__delete_request"><h3>URI Parameters</h3><ul><li><strong>testcase_id</strong>: <em>required (string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="tests" class="panel-title">/tests</h3></div><div class="panel-body"><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_tests"><span class="parent"></span>/tests</a> <span class="methods"><a href="#tests_get"><span class="badge badge_get">get</span></a> <a href="#tests_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel_tests" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#tests_get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>List delegated tests.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#tests_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Assign test to perform.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="tests_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/tests</h4></div><div class="modal-body"><div class="alert alert-info"><p>List delegated tests.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#tests_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="tests_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "items": {
+    "type": "object",
+    "properties": {
+      "testcase_id": {
+        "description": "Identifier of the testcase",
+        "type": "string",
+        "required": true
+      },
+      "solution_id": {
+        "description": "Identifier of the solution",
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>[
+  {
+    "test_id": "04a324",
+    "solution_id": "a3ef3a",
+    "testcase_id": "342fasdf123"
+  },
+  {
+    "test_id": "04a324",
+    "solution_id": "a3ef3a",
+    "testcase_id": "342fasdf123"
+  }
+]
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="tests_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/tests</h4></div><div class="modal-body"><div class="alert alert-info"><p>Assign test to perform.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#tests_post_request" data-toggle="tab">Request</a></li><li><a href="#tests_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="tests_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "testcase_id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": true
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "solution_id": "a3ef3a",
+  "testcase_id": "342fasdf123"
+}
+</code></pre></div><div class="tab-pane" id="tests_post_response"><h2>HTTP status code <a href="http://httpstatus.es/202" target="_blank">202</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "test_id": {
+      "description": "Identifier of the test",
+      "type": "string",
+      "required": false
+    },
+    "testcase_id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "description": "Status of the test evaluation",
+      "type": "string",
+      "required": true,
+      "enum": [ "created", "pending", "finished" ]
+    },
+    "stdout": {
+      "description": "Output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "stderr": {
+      "description": "Error output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "passed": {
+      "description": "Has the test been passed.",
+      "type": "boolean",
+      "required": false
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "test_id": "04a324",
+  "status": "pending",
+  "testcase_id": "234234t61",
+  "solution_id": "a3ef3a"
+}
+</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_tests__test_id_"><span class="parent">/tests</span>/{test_id}</a> <span class="methods"><a href="#tests__test_id__get"><span class="badge badge_get">get</span></a></span></h4></div><div id="panel_tests__test_id_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#tests__test_id__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Returns status of the performed test.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="tests__test_id__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent">/tests</span>/{test_id}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Returns status of the performed test.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#tests__test_id__get_request" data-toggle="tab">Request</a></li><li><a href="#tests__test_id__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="tests__test_id__get_request"><h3>URI Parameters</h3><ul><li><strong>test_id</strong>: <em>required (string)</em></li></ul></div><div class="tab-pane" id="tests__test_id__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "test_id": {
+      "description": "Identifier of the test",
+      "type": "string",
+      "required": false
+    },
+    "testcase_id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "description": "Status of the test evaluation",
+      "type": "string",
+      "required": true,
+      "enum": [ "created", "pending", "finished" ]
+    },
+    "stdout": {
+      "description": "Output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "stderr": {
+      "description": "Error output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "passed": {
+      "description": "Has the test been passed.",
+      "type": "boolean",
+      "required": false
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "test_id": "04a324",
+  "status": "pending",
+  "passed": false,
+  "testcase_id": "234234t61",
+  "solution_id": "a3ef3a",
+}
+</code></pre><h2>HTTP status code <a href="http://httpstatus.es/202" target="_blank">202</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "properties": {
+    "test_id": {
+      "description": "Identifier of the test",
+      "type": "string",
+      "required": false
+    },
+    "testcase_id": {
+      "description": "Identifier of the testcase",
+      "type": "string",
+      "required": true
+    },
+    "solution_id": {
+      "description": "Identifier of the solution",
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "description": "Status of the test evaluation",
+      "type": "string",
+      "required": true,
+      "enum": [ "created", "pending", "finished" ]
+    },
+    "stdout": {
+      "description": "Output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "stderr": {
+      "description": "Error output of the program.",
+      "type": "string",
+      "required": false
+    },
+    "passed": {
+      "description": "Has the test been passed.",
+      "type": "boolean",
+      "required": false
+    }
+  }
+}
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "test_id": "04a324",
+  "status": "pending",
+  "passed": false,
+  "testcase_id": "234234t61",
+  "solution_id": "a3ef3a",
+}
+</code></pre></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#solutions">/solutions</a></li><li><a href="#testcases">/testcases</a></li><li><a href="#tests">/tests</a></li></ul></div></div></div></div></body></html>

@@ -1,0 +1,6 @@
+{
+  "description": "Testing echo",
+  "stdin": "something",
+  "expected_stdout": "something",
+  "expected_stderr": "something"
+}

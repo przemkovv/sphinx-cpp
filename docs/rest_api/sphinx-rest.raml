@@ -7,252 +7,16 @@ mediaType: application/json
 protocols: [HTTP]
 
 schemas:
-  - Solution: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "type": {
-            "description": "Type of the project (cpp, java)",
-            "type": "string",
-            "required": true
-          },
-          "files": {
-            "type": "array",
-            "required": true,
-            "items": {
-              "type": "object",
-              "properties": {
-                "filename": {
-                  "description": "Name of the filename",
-                  "type": "string",
-                  "required": true
-                },
-                "content": {
-                  "description": "Content of the file",
-                  "type": "string",
-                  "required": true
-                }
-              }
-            },
-            "minItems": 1
-          }
-        }
-      }
-  - Solutions: |
-      {
-        "type": "array",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": false,
-        "items": {
-          "type": "object",
-          "properties": {
-            "solution_id": {
-              "description": "Id of the solution",
-              "type": "string",
-              "required": true
-            }
-          }
-        },
-        "minItems": 0
-      }
-  - SolutionCreateResponse: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "solution_id": {
-            "description": "Id of the solution",
-            "type": "string",
-            "required": true
-          }
-        }
-      }
-  - CompilerOutput: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "output": {
-            "description": "Output of the compiler",
-            "type": "string",
-            "required": false
-          },
-          "errors": {
-            "description": "Errors from the compiler",
-            "type": "string",
-            "required": false
-          },
-          "compilation_successfull": {
-            "description": "Is the compilation successfull",
-            "type": "string",
-            "required": true
-          }
-        }
-      }
-  - Testcases: |
-      {
-        "type": "array",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "description": "Identifier of the testcase.",
-              "type": "string",
-              "required": false
-            },
-            "description": {
-              "description": "Description of the testcase",
-              "type": "string",
-              "required": true
-            }
-          }
-        }
-      }
-  - Testcase: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "id": {
-            "description": "Identifier of the testcase.",
-            "type": "string",
-            "required": false
-          },
-          "description": {
-            "description": "Description of the testcase",
-            "type": "string",
-            "required": true
-          },
-          "stdin": {
-            "description": "Data passed to the standard input",
-            "type": "string",
-            "required": false
-          },
-          "expected_stdout": {
-            "description": "Expected output of the program",
-            "type": "string",
-            "required": false
-          },
-          "expected_stderror": {
-            "description": "Expected error output of the program",
-            "type": "string",
-            "required": false
-          }
-        }
-      }
-  - TestcaseCreateResponse: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "id": {
-            "description": "Identifier of the testcase",
-            "type": "string",
-            "required": true
-          }
-        }
-      }
-  - Tests: |
-      {
-        "type": "array",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "items": {
-          "type": "object",
-          "properties": {
-            "testcase_id": {
-              "description": "Identifier of the testcase",
-              "type": "string",
-              "required": true
-            },
-            "solution_id": {
-              "description": "Identifier of the solution",
-              "type": "string",
-              "required": true
-            }
-          }
-        }
-      }
-  - Test: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "testcase_id": {
-            "description": "Identifier of the testcase",
-            "type": "string",
-            "required": true
-          },
-          "solution_id": {
-            "description": "Identifier of the solution",
-            "type": "string",
-            "required": true
-          }
-        }
-      }
-  - TestStatus: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "test_id": {
-            "description": "Identifier of the test",
-            "type": "string",
-            "required": false
-          },
-          "testcase_id": {
-            "description": "Identifier of the testcase",
-            "type": "string",
-            "required": true
-          },
-          "solution_id": {
-            "description": "Identifier of the solution",
-            "type": "string",
-            "required": true
-          },
-          "status": {
-            "description": "Status of the test evaluation",
-            "type": "string",
-            "required": true,
-            "enum": [ "created", "pending", "finished" ]
-          },
-          "stdout": {
-            "description": "Output of the program.",
-            "type": "string",
-            "required": false
-          },
-          "stderr": {
-            "description": "Error output of the program.",
-            "type": "string",
-            "required": false
-          },
-          "passed": {
-            "description": "Has the test been passed.",
-            "type": "boolean",
-            "required": false
-          }
-        }
-      }
+  - Solution: !include schema/solution.json
+  - Solutions: !include schema/solutions.json
+  - SolutionCreateResponse: !include schema/solution_create_response.json
+  - CompilerOutput: !include schema/compiler_output.json
+  - Testcases: !include schema/testcases.json
+  - Testcase: !include schema/testcase.json
+  - TestcaseCreateResponse: !include schema/testcase_create_response.json
+  - Tests: !include schema/tests.json
+  - Test: !include schema/test.json
+  - TestStatus: !include schema/test_status.json
 
 /solutions:
   get:
@@ -262,35 +26,19 @@ schemas:
         body:
           application/json:
             schema: Solutions
-      
+            example: !include samples/solutions-retrieve.json
   post:
     description: Send source files with solution.
     body:
       application/json:
         schema: Solution
-        example: |
-          {
-            "type": "cpp",
-            "files": [
-              {
-                "filename": "main.cpp",
-                "content": "int main() { return 0;}"
-              },
-              {
-                "filename": "foo.cpp",
-                "content": "int foo() { return 1; }"
-              }
-            ]
-          }
+        example: !include samples/solution-new.json
     responses:
       201:
         body:
           application/json:
             schema: SolutionCreateResponse
-            example: |
-              {
-                "solution_id": "a3ef3a"
-              }
+            example: !include samples/solution_create_response.json
   /{solution_id}:
     get:
       description: Retrieve the solution.
@@ -299,20 +47,7 @@ schemas:
           body:
             application/json:
               schema: Solution
-              example: |
-                {
-                  "type": "cpp",
-                  "files": [
-                    {
-                      "filename": "main.cpp",
-                      "content": "int main() { return 0;}"
-                    },
-                    {
-                      "filename": "foo.cpp",
-                      "content": "int foo() { return 1; }"
-                    }
-                  ]
-                }
+              example: !include samples/solution-retrieve.json
     delete:
       description: Deletes solution from the server.
       responses:
@@ -325,22 +60,14 @@ schemas:
             body:
               application/json:
                 schema: CompilerOutput
-                example: |
-                  {
-                    "output": "",
-                    "errors": "",
-                    "compilation_successfull": true
-                  }
+                example: !include samples/compiler_output-retrieve-good.json
+                  
           304:
             body:
               application/json:
                 schema: CompilerOutput
-                example: |
-                  {
-                    "output": "",
-                    "errors": "error on line 13",
-                    "compilation_successfull": false
-                  }
+                example: !include samples/compiler_output-retrieve-error.json
+                  
 /testcases:
   get:
     description: Returns list of testcases.
@@ -349,45 +76,21 @@ schemas:
         body:
           application/json:
             schema: Testcases
-            example: |
-              [
-                {
-                  "id": "342fasdf123",
-                  "description": "Testing echo",
-                  "stdin": "something",
-                  "expected_stdout": "something",
-                  "expected_stderr": "something"
-                },
-                {
-                  "id": "234234t61",
-                  "description": "Testing uppercase echo",
-                  "stdin": "something",
-                  "expected_stdout": "SOMETHING",
-                  "expected_stderr": "SOMETHING"
-                }
-              ]
+            example: !include samples/testcases-retrieve.json
   post:
     description: |
       Create a test case consisting of the input and expected results.
     body:
       application/json:
         schema: Testcase
-        example: |
-          {
-            "description": "Testing echo",
-            "stdin": "something",
-            "expected_stdout": "something",
-            "expected_stderr": "something"
-          }
+        example: !include samples/testcase-new.json
     responses:
       200:
         body:
           application/json:
             schema: TestcaseCreateResponse
-            example: |
-              {
-                "id": "342fasdf123"
-              }
+            example: !include samples/testcase_create_response.json
+              
   /{testcase_id}:
     get:
       description: Get testcase with the given id.
@@ -396,16 +99,10 @@ schemas:
           body:
             application/json:
               schema: Testcase
-              example: |
-                {
-                  "id": "342fasdf123",
-                  "description": "Testing echo",
-                  "stdin": "something",
-                  "expected_stdout": "something",
-                  "expected_stderr": "something"
-                }
+              example: !include samples/testcase-retrieve.json
     delete:
       description: Deletes the testcase.
+
 /tests:
   get:
     description: List delegated tests.
@@ -414,41 +111,19 @@ schemas:
         body:
           application/json:
             schema: Tests
-            example: |
-              [
-                {
-                  "test_id": "04a324",
-                  "solution_id": "a3ef3a",
-                  "testcase_id": "342fasdf123"
-                },
-                {
-                  "test_id": "04a324",
-                  "solution_id": "a3ef3a",
-                  "testcase_id": "342fasdf123"
-                }
-              ]
+            example: !include samples/tests-retrieve.json
   post:
     description: Assign test to perform.
     body:
       application/json:
         schema: Test
-        example: |
-          {
-            "solution_id": "a3ef3a",
-            "testcase_id": "342fasdf123"
-          }
+        example: !include samples/test-new.json
     responses:
       202:
         body:
           application/json:
             schema: TestStatus
-            example: |
-              {
-                "test_id": "04a324",
-                "status": "pending",
-                "testcase_id": "234234t61",
-                "solution_id": "a3ef3a"
-              }
+            example: !include samples/test_status-new.json
   /{test_id}:
     get:
       description: Returns status of the performed test.
@@ -457,20 +132,9 @@ schemas:
           body:
             application/json:
               schema: TestStatus
-              example: |
-                {
-                  "test_id": "04a324",
-                  "status": "finished",
-                  "passed": false,
-                  "testcase_id": "234234t61",
-                  "solution_id": "a3ef3a",
-                  "stdout": "something",
-                  "stderr": "something",
-                }
+              example: !include samples/test_status-retrieve-finished.json
         202:
           body:
             application/json:
               schema: TestStatus
-              example: |
-                {
-                  "test_id": "04a324",
+              example: !include samples/test_status-retrieve-pending.json

@@ -1,0 +1,21 @@
+{
+  "type": "array",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "id": "http://jsonschema.net",
+  "required": true,
+  "items": {
+    "type": "object",
+    "properties": {
+      "testcase_id": {
+        "description": "Identifier of the testcase",
+        "type": "string",
+        "required": true
+      },
+      "solution_id": {
+        "description": "Identifier of the solution",
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}
