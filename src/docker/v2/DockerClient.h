@@ -5,15 +5,8 @@
 #include "DockerContainer.h"
 #include "DockerStatus.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
-#pragma clang diagnostic ignored "-Wdocumentation"
-#pragma clang diagnostic ignored "-Wswitch-enum"
-#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#include <nlohmann/json.hpp>
 
-#include "json.hpp"
-
-#pragma clang diagnostic pop
 
 #include <memory>
 #include <string>
@@ -143,6 +136,12 @@ private:
   template <typename U> std::string get_message_error(const U &data);
   std::string get_message_error(const nlohmann::json &data);
 };
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-template-vtables"
+extern template class DockerSocketClient<UnixSocket>;
+extern template class DockerSocketClient<TCPSocket>;
+#pragma clang diagnostic pop
 
 inline auto make_docker_client(const std::string &address,
                                unsigned short port,

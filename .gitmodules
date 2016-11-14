@@ -2,3 +2,6 @@
 	path = tools/magic-makefile
 	url = https://bitbucket.org/mb1986/magic-makefile.git
 	branch = develop
+[submodule "src/shared_lib"]
+	path = src/shared_lib
+	url = https://przemkovv@bitbucket.org/przemkovv/sphinx-shared-lib.git

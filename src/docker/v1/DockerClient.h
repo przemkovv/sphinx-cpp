@@ -2,15 +2,7 @@
 #pragma once
 #include "RESTClient.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
-#pragma clang diagnostic ignored "-Wdocumentation"
-#pragma clang diagnostic ignored "-Wswitch-enum"
-#pragma clang diagnostic ignored "-Wcovered-switch-default"
-
-#include "json.hpp"
-
-#pragma clang diagnostic pop
+#include <nlohmann/json.hpp>
 
 #include <stdexcept>
 

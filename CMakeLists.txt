@@ -20,11 +20,25 @@ add_definitions(
     -Werror
     -DSPDLOG_FMT_EXTERNAL
     )
+
+
+include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
+
+
 find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(FMT fmt libfmt)
 find_package (Threads REQUIRED)
 find_package(Boost 1.60 COMPONENTS system filesystem program_options)
+
+include(ExternalProject)
+
+ExternalProject_Add(json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBuildTests=OFF
+    UPDATE_COMMAND ""
+    )
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )

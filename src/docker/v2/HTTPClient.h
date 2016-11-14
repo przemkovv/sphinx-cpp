@@ -215,6 +215,9 @@ private:
   const std::size_t CRLF = 2;
 };
 
+extern template class HTTPClient<TCPSocket>;
+extern template class HTTPClient<UnixSocket>;
+
 inline auto make_http_client(const std::string &address, unsigned short port)
 {
   return std::make_shared<HTTPClient<TCPSocket>>(address, port);

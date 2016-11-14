@@ -4,15 +4,8 @@
 
 #include "Docker.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
-#pragma clang diagnostic ignored "-Wdocumentation"
-#pragma clang diagnostic ignored "-Wswitch-enum"
-#pragma clang diagnostic ignored "-Wcovered-switch-default"
+#include <nlohmann/json.hpp>
 
-#include "json.hpp"
-
-#pragma clang diagnostic pop
 
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>

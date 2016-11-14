@@ -239,8 +239,9 @@ template <typename T>
 template <typename... U>
 bool DockerSocketClient<T>::throw_if_error(const Result<U...> &result)
 {
-  const auto &status = std::get<0>(result);
-  if (status != DockerStatus::NoError) {
+
+  if (const auto &status = std::get<0>(result);
+      status != DockerStatus::NoError) {
     std::string message = get_message_error(std::get<1>(result));
     logger->error("Status code: {}, Error message: {}",
                   static_cast<int>(status), message);
@@ -252,8 +253,8 @@ template <typename T>
 template <typename... U>
 bool DockerSocketClient<T>::is_error(const Result<U...> &result)
 {
-  const auto &status = std::get<0>(result);
-  if (status != DockerStatus::NoError) {
+  if (const auto &status = std::get<0>(result);
+      status != DockerStatus::NoError) {
     logger->error("Status code: {}, Error message: {}",
                   static_cast<int>(status),
                   get_message_error(std::get<1>(result)));
