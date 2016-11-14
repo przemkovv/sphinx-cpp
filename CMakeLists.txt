@@ -24,7 +24,7 @@ find_library(POCO_FOUNDATION PocoFoundation)
 find_library(POCO_NET PocoNet)
 find_library(FMT fmt libfmt)
 find_package (Threads REQUIRED)
-find_package(Boost 1.60 COMPONENTS filesystem program_options)
+find_package(Boost 1.60 COMPONENTS system filesystem program_options)
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
@@ -39,7 +39,7 @@ add_subdirectory(src/core)
 #add_subdirectory(src/net)
 add_subdirectory(src/app)
 add_subdirectory(src/docker_tests)
-#add_subdirectory(src/tests)
+add_subdirectory(src/tests)
 
 
 

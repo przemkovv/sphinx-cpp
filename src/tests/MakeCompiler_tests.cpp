@@ -17,11 +17,11 @@ int main() {
 } )code"
                               };
             Sphinx::Sandbox sandbox;
-            sandbox.addFile(file);
+            sandbox.add_file(file);
             THEN("compiler returns no errors") {
                 REQUIRE(compiler.compile(sandbox) == true);
-                REQUIRE(compiler.getErrors().size() == 0);
-                REQUIRE(compiler.getErrors().empty() == true);
+                REQUIRE(compiler.get_errors().size() == 0);
+                REQUIRE(compiler.get_errors().empty() == true);
             }
         }
 
@@ -34,10 +34,10 @@ int main() {
 } )code"
                               };
             Sphinx::Sandbox sandbox;
-            sandbox.addFile(file);
+            sandbox.add_file(file);
             THEN("compiler returns errors") {
                 REQUIRE(compiler.compile(sandbox) == false);
-                REQUIRE(compiler.getErrors().empty() == false);
+                REQUIRE(compiler.get_errors().empty() == false);
             }
         }
     }
