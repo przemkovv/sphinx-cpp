@@ -4,6 +4,8 @@
 
 #include "process.h"
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include "pprint.h"
 
 namespace Sphinx {
 namespace Compilers {

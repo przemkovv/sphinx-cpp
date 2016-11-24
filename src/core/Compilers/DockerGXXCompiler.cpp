@@ -5,6 +5,8 @@
 #include "utils.h"
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include "pprint.h"
 
 #include <range/v3/view/remove_if.hpp>
 #include <range/v3/view/transform.hpp>

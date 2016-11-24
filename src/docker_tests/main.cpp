@@ -10,6 +10,8 @@
 #include <boost/asio.hpp>
 #include <boost/filesystem.hpp>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
+#include "pprint.h"
 
 #include <future>
 #include <thread>
